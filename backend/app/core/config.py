@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str
 
     # Signal Intelligence APIs
-    SERPAPI_KEY: Optional[str] = None
+    SEARCHAPI_KEY: Optional[str] = None
 
     # Application
     ENVIRONMENT: str = "development"
