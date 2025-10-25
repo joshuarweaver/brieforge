@@ -350,6 +350,35 @@
           "response": []
         },
         {
+          "name": "Update Campaign",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Campaign Name\",\n    \"status\": \"analyzing\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "List Campaigns",
           "request": {
             "method": "GET",
@@ -389,35 +418,6 @@
           "response": []
         },
         {
-          "name": "Update Campaign",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"name\": \"Updated Campaign Name\",\n    \"status\": \"analyzing\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "campaigns",
-                "{{campaign_id}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "Delete Campaign",
           "request": {
             "method": "DELETE",
@@ -435,140 +435,6 @@
               ]
             }
           },
-          "response": []
-        },
-        {
-          "name": "Generate Campaign Blueprint",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    const blueprint = pm.response.json();",
-                  "    pm.test('Blueprint includes draft assets', function () {",
-                  "        pm.expect(blueprint.draft_assets).to.be.an('array');",
-                  "    });",
-                  "    if (blueprint.artifact_id) {",
-                  "        pm.collectionVariables.set('blueprint_id', blueprint.artifact_id);",
-                  "        console.log('Stored blueprint_id', blueprint.artifact_id);",
-                  "    }",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/blueprint?persist=true",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "campaigns",
-                "{{campaign_id}}",
-                "blueprint"
-              ],
-              "query": [
-                {
-                  "key": "persist",
-                  "value": "true"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "List Campaign Blueprints",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/blueprints",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "campaigns",
-                "{{campaign_id}}",
-                "blueprints"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    const items = pm.response.json();",
-                  "    pm.test('Blueprint list returns array', function () {",
-                  "        pm.expect(items).to.be.an('array');",
-                  "    });",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "name": "Get Campaign Blueprint",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/blueprints/{{blueprint_id}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "campaigns",
-                "{{campaign_id}}",
-                "blueprints",
-                "{{blueprint_id}}"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "const blueprintId = pm.collectionVariables.get('blueprint_id');",
-                  "if (!blueprintId) {",
-                  "    console.warn('No blueprint_id set. Run Generate Campaign Blueprint first.');",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    const blueprint = pm.response.json();",
-                  "    pm.test('Blueprint has insights summary', function () {",
-                  "        pm.expect(blueprint.insights).to.be.an('object');",
-                  "    });",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "response": []
         }
       ]
@@ -641,6 +507,44 @@
           "response": []
         },
         {
+          "name": "Enrich Signals",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const summary = pm.response.json();",
+                  "    pm.test('Enrichment summary has processed count', function () {",
+                  "        pm.expect(summary.processed).to.be.at.least(0);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/signals/enrich",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "signals",
+                "enrich"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "List Campaign Signals",
           "request": {
             "method": "GET",
@@ -696,44 +600,6 @@
               }
             }
           ]
-        },
-        {
-          "name": "Enrich Signals",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    const summary = pm.response.json();",
-                  "    pm.test('Enrichment summary has processed count', function () {",
-                  "        pm.expect(summary.processed).to.be.at.least(0);",
-                  "    });",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/signals/enrich",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "campaigns",
-                "{{campaign_id}}",
-                "signals",
-                "enrich"
-              ]
-            }
-          },
-          "response": []
         },
         {
           "name": "List Signal Enrichments",
@@ -1239,6 +1105,202 @@
       ]
     },
     {
+      "name": "Blueprints",
+      "item": [
+        {
+          "name": "Generate Campaign Blueprint",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const blueprint = pm.response.json();",
+                  "    pm.test('Blueprint includes draft assets', function () {",
+                  "        pm.expect(blueprint.draft_assets).to.be.an('array');",
+                  "    });",
+                  "    if (blueprint.artifact_id) {",
+                  "        pm.collectionVariables.set('blueprint_id', blueprint.artifact_id);",
+                  "        console.log('Stored blueprint_id', blueprint.artifact_id);",
+                  "    }",
+                  "    pm.test('Blueprint notes generation method', function () {",
+                  "        pm.expect(blueprint.metadata.generation_method).to.be.a('string');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/blueprint?persist=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "blueprint"
+              ],
+              "query": [
+                {
+                  "key": "persist",
+                  "value": "true"
+                },
+                {
+                  "key": "use_llm",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Campaign Blueprints",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/blueprints",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "blueprints"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const items = pm.response.json();",
+                  "    pm.test('Blueprint list returns array', function () {",
+                  "        pm.expect(items).to.be.an('array');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get Campaign Blueprint",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/blueprints/{{blueprint_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "blueprints",
+                "{{blueprint_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const blueprintId = pm.collectionVariables.get('blueprint_id');",
+                  "if (!blueprintId) {",
+                  "    console.warn('No blueprint_id set. Run Generate Campaign Blueprint first.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const blueprint = pm.response.json();",
+                  "    pm.test('Blueprint has insights summary', function () {",
+                  "        pm.expect(blueprint.insights).to.be.an('object');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Exports",
+      "item": [
+        {
+          "name": "Generate Export Payload",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const payload = pm.response.json();",
+                  "    pm.test('Export payload contains platform', function () {",
+                  "        pm.expect(payload.platform).to.be.a('string');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/exports/meta",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "exports",
+                "meta"
+              ],
+              "query": [
+                {
+                  "key": "dry_run",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "System",
       "item": [
         {
@@ -1296,55 +1358,6 @@
               ],
               "path": [
                 "docs"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Exports",
-      "item": [
-        {
-          "name": "Generate Export Payload",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    const payload = pm.response.json();",
-                  "    pm.test('Export payload contains platform', function () {",
-                  "        pm.expect(payload.platform).to.be.a('string');",
-                  "    });",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/exports/meta",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "campaigns",
-                "{{campaign_id}}",
-                "exports",
-                "meta"
-              ],
-              "query": [
-                {
-                  "key": "dry_run",
-                  "value": "true"
-                }
               ]
             }
           },

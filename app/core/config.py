@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     API_V1_PREFIX: str = "/api/v1"
     PROJECT_NAME: str = "Fieldcraft"
+    BLUEPRINT_USE_LLM: bool = True
+    BLUEPRINT_LLM_PROVIDER: str = "claude"
+    BLUEPRINT_LLM_MAX_TOKENS: int = 2800
 
     model_config = SettingsConfigDict(
         env_file=".env",

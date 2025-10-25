@@ -1,5 +1,5 @@
 """Campaign endpoints."""
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -77,6 +77,7 @@ def get_campaign(
 
 
 @router.patch("/{campaign_id}", response_model=CampaignResponse)
+@router.put("/{campaign_id}", response_model=CampaignResponse)
 def update_campaign(
     campaign_id: UUID,
     campaign_data: CampaignUpdate,
@@ -99,7 +100,9 @@ def update_campaign(
     if campaign_data.name is not None:
         campaign.name = campaign_data.name
     if campaign_data.brief is not None:
-        campaign.brief = campaign_data.brief.model_dump()
+        existing_brief = campaign.brief or {}
+        brief_update = campaign_data.brief.model_dump(exclude_unset=True)
+        campaign.brief = {**existing_brief, **{k: v for k, v in brief_update.items() if v is not None}}
     if campaign_data.status is not None:
         campaign.status = campaign_data.status
 
@@ -138,6 +141,7 @@ def generate_campaign_blueprint(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     persist: bool = Query(True, description="Persist the blueprint artifact"),
+    use_llm: Optional[bool] = Query(None, description="Override default LLM usage (true/false)"),
 ):
     """Generate a structured campaign blueprint from signals."""
     campaign = db.query(Campaign).filter(
@@ -157,6 +161,7 @@ def generate_campaign_blueprint(
         workspace_id=workspace_id,
         user_id=current_user.id,
         persist=persist,
+        use_llm=use_llm,
     )
     return CampaignBlueprint.model_validate(blueprint)
 

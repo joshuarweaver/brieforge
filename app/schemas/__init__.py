@@ -12,6 +12,7 @@ from app.schemas.user import (
 )
 from app.schemas.campaign import (
     Brief,
+    BriefUpdate,
     CampaignCreate,
     CampaignUpdate,
     CampaignResponse,
@@ -46,6 +47,7 @@ __all__ = [
     "APIKeyWithSecretResponse",
     "RegistrationResponse",
     "Brief",
+    "BriefUpdate",
     "CampaignCreate",
     "CampaignUpdate",
     "CampaignResponse",

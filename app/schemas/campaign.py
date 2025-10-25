@@ -17,6 +17,17 @@ class Brief(BaseModel):
     voice_constraints: Optional[str] = None
 
 
+class BriefUpdate(BaseModel):
+    """Partial update schema for campaign brief."""
+    goal: Optional[str] = None
+    audiences: Optional[List[str]] = None
+    offer: Optional[str] = None
+    competitors: Optional[List[str]] = None
+    channels: Optional[List[str]] = None
+    budget_band: Optional[str] = None
+    voice_constraints: Optional[str] = None
+
+
 # Campaign Schemas
 class CampaignBase(BaseModel):
     """Base campaign schema."""
@@ -32,7 +43,7 @@ class CampaignCreate(CampaignBase):
 class CampaignUpdate(BaseModel):
     """Campaign update schema."""
     name: Optional[str] = None
-    brief: Optional[Brief] = None
+    brief: Optional[BriefUpdate] = None
     status: Optional[str] = None
 
 

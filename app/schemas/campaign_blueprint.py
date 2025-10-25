@@ -1,6 +1,6 @@
 """Campaign blueprint schemas."""
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from uuid import UUID
 from pydantic import BaseModel
 
@@ -70,6 +70,7 @@ class CampaignBlueprint(BaseModel):
     messaging_pillars: List[MessagingPillar]
     draft_assets: List[DraftAsset]
     next_actions: List[str]
+    metadata: Dict[str, Any] = {}
 
 
 class CampaignBlueprintListItem(BaseModel):

@@ -117,9 +117,17 @@ backend/
 - `GET /api/v1/campaigns/{id}` - Get campaign
 - `PATCH /api/v1/campaigns/{id}` - Update campaign
 - `DELETE /api/v1/campaigns/{id}` - Delete campaign
-- `POST /api/v1/campaigns/{id}/blueprint` - Generate campaign blueprint from signals (optional persistence)
+- `POST /api/v1/campaigns/{id}/blueprint` - Generate campaign blueprint (LLM-driven by default, optional persistence)
 - `GET /api/v1/campaigns/{id}/blueprints` - List stored blueprint artifacts
 - `GET /api/v1/campaigns/{id}/blueprints/{blueprint_id}` - Retrieve a specific blueprint artifact
+
+#### Blueprint Generation
+- Blueprints synthesize collected signals, enrichment features, completed analyses, and (when available) strategic briefs.
+- The service calls the configured LLM (default Claude) to create the JSON output; if the LLM fails, a deterministic rule-based blueprint is returned instead.
+- Query parameters:
+  - `persist` (default `true`) — store the generated artifact for later retrieval.
+  - `use_llm` (optional) — override the environment default (`true`/`false`).
+- The response metadata indicates the generation method, LLM model details, and includes a condensed rule-based preview for comparison.
 
 ### Signals
 - `POST /api/v1/campaigns/{id}/signals/collect` - Collect multi-source signals with deduplication
