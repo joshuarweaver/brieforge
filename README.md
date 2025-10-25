@@ -128,6 +128,7 @@ backend/
   - `persist` (default `true`) — store the generated artifact for later retrieval.
   - `use_llm` (optional) — override the environment default (`true`/`false`).
 - The response metadata indicates the generation method, LLM model details, and includes a condensed rule-based preview for comparison.
+- Draft assets are aligned to campaign channels, enforcing a minimum of five variants per requested platform (e.g., 5 for Meta, 5 for Google, etc.) with counts reported in `metadata.asset_counts`.
 
 ### Signals
 - `POST /api/v1/campaigns/{id}/signals/collect` - Collect multi-source signals with deduplication

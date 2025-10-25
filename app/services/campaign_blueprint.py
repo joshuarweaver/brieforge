@@ -32,6 +32,102 @@ logger = logging.getLogger(__name__)
 class CampaignBlueprintService:
     """Transforms signals and enrichments into persisted campaign blueprints."""
 
+    CHANNEL_PLATFORM_MAP = {
+        "facebook": "meta",
+        "facebook_ads": "meta",
+        "instagram": "meta",
+        "instagram_ads": "meta",
+        "meta": "meta",
+        "meta_ads": "meta",
+        "linkedin": "linkedin",
+        "linkedin_ads": "linkedin",
+        "google": "google",
+        "google_ads": "google",
+        "search": "google",
+        "youtube": "youtube",
+        "tiktok": "tiktok",
+        "reddit": "reddit",
+        "pinterest": "pinterest",
+        "snapchat": "snapchat",
+    }
+
+    AWARENESS_PLATFORMS = {"youtube", "pinterest", "tiktok", "snapchat"}
+
+    PLATFORM_TONES = {
+        "google": {
+            "headline_prefixes": ["Capture demand for", "Show up for", "Win the click with"],
+            "body_suffixes": [
+                "Capitalize on active search intent with proof-led copy.",
+                "Highlight credibility, stats, and clear next steps to earn the click.",
+                "Blend keyword relevance with outcome-focused language to convert immediately.",
+            ],
+        },
+        "meta": {
+            "headline_prefixes": ["Inspire", "Spark interest in", "Stop the scroll with"],
+            "body_suffixes": [
+                "Pair bold visuals with concise storytelling for thumb-stopping impact.",
+                "Leverage social proof and lifestyle framing to earn attention.",
+                "Blend emotional hooks with a crystal-clear CTA to drive action.",
+            ],
+        },
+        "linkedin": {
+            "headline_prefixes": ["Engage", "Equip", "Empower"],
+            "body_suffixes": [
+                "Anchor the message in business outcomes and strategic ROI.",
+                "Speak directly to decision-makers with authoritative proof.",
+                "Lead with industry insight and peer credibility to build trust.",
+            ],
+        },
+        "youtube": {
+            "headline_prefixes": ["Hook viewers with", "Open the narrative with", "Lead the story for"],
+            "body_suffixes": [
+                "Front-load the value prop within the first five seconds for retention.",
+                "Guide the longer-form story with dynamic visuals and pacing cues.",
+                "Pair audio hooks with visual proof to keep viewers engaged.",
+            ],
+        },
+        "tiktok": {
+            "headline_prefixes": ["Trend with", "Kick off with", "Launch energy around"],
+            "body_suffixes": [
+                "Keep the tone native, punchy, and ready for remixing.",
+                "Invite UGC participation with a conversational CTA.",
+                "Use creator-style language to encourage shares and saves.",
+            ],
+        },
+        "pinterest": {
+            "headline_prefixes": ["Inspire", "Visualize", "Design around"],
+            "body_suffixes": [
+                "Paint the aspirational outcome with descriptive language.",
+                "Highlight visual proof and step-by-step guidance.",
+                "Guide planners from idea to action in a single glance.",
+            ],
+        },
+        "reddit": {
+            "headline_prefixes": ["Start the conversation on", "Share the evidence for", "Open a thread around"],
+            "body_suffixes": [
+                "Use transparent, value-first copy aimed at discerning communities.",
+                "Back every claim with proof, reviews, or real-world outcomes.",
+                "Close with an invitation to weigh in or ask questions.",
+            ],
+        },
+        "snapchat": {
+            "headline_prefixes": ["Grab attention with", "Launch fast with", "Highlight the moment for"],
+            "body_suffixes": [
+                "Keep energy high and CTA-forward for swipe-worthy engagement.",
+                "Use urgency and exclusivity to prompt immediate action.",
+                "Pair playful tone with bold creative direction.",
+            ],
+        },
+        "generic": {
+            "headline_prefixes": ["Elevate", "Highlight", "Showcase"],
+            "body_suffixes": [
+                "Lead with the strongest proof point and a persuasive CTA.",
+                "Blend emotional and rational benefits to drive response.",
+                "Align the message to channel norms while staying conversion-minded.",
+            ],
+        },
+    }
+
     def __init__(self, db: Session, observability: ObservabilityService | None = None):
         self.db = db
         self.observability = observability or ObservabilityService(db)
@@ -128,6 +224,8 @@ class CampaignBlueprintService:
 
         final_blueprint["artifact_id"] = None
         final_blueprint["campaign_id"] = str(campaign.id)
+
+        self._ensure_platform_asset_coverage(final_blueprint, campaign)
 
         artifact: Optional[CampaignBlueprintArtifact] = None
         if persist:
@@ -369,13 +467,12 @@ class CampaignBlueprintService:
             audience_focus = self._match_audiences_to_signal(signal, hypotheses)
             variations = self._build_variations(headline, primary_text)
 
+            platform = self._standardize_platform_name(signal.source)
             assets.append(
                 {
                     "id": asset_id,
-                    "platform": signal.source,
-                    "objective": "awareness"
-                    if signal.source in {"youtube", "pinterest"}
-                    else "conversion",
+                    "platform": platform,
+                    "objective": self._platform_objective(platform),
                     "audience_focus": audience_focus,
                     "headline": headline,
                     "primary_text": primary_text,
@@ -543,14 +640,20 @@ class CampaignBlueprintService:
                         "cta": asset_copy.get("cta", "Learn More"),
                     }
                 ]
+            platform = self._standardize_platform_name(asset_copy.get("platform"))
             asset_copy.update(
                 {
                     "id": asset_id,
+                    "platform": platform or "generic",
                     "variations": variations,
                     "audience_focus": asset_copy.get("audience_focus", []),
                     "supporting_signals": asset_copy.get("supporting_signals", []),
                     "creative_hooks": asset_copy.get("creative_hooks", []),
                     "cta": asset_copy.get("cta", "Learn More"),
+                    "headline": asset_copy.get("headline") or "Campaign Concept",
+                    "primary_text": asset_copy.get("primary_text")
+                    or "Campaign narrative to be refined.",
+                    "objective": self._platform_objective(platform or "generic"),
                 }
             )
             normalized.append(asset_copy)
@@ -838,3 +941,172 @@ class CampaignBlueprintService:
             }
         )
         return variations
+
+    # ------------------------------------------------------------------
+    # Platform coverage utilities
+    # ------------------------------------------------------------------
+    def _ensure_platform_asset_coverage(self, blueprint: Dict[str, Any], campaign: Campaign) -> None:
+        desired_platforms = self._map_channels_to_platforms(campaign.brief.get("channels", []))
+        if not desired_platforms:
+            return
+
+        assets = blueprint.get("draft_assets", [])
+        buckets: Dict[str, List[Dict[str, Any]]] = {}
+        for asset in assets:
+            platform = self._standardize_platform_name(asset.get("platform"))
+            buckets.setdefault(platform, []).append(copy.deepcopy(asset))
+
+        expanded: List[Dict[str, Any]] = []
+        for platform in desired_platforms:
+            platform_assets = buckets.get(platform, [])
+
+            if not platform_assets:
+                platform_assets = [self._create_placeholder_asset(platform, blueprint, campaign)]
+
+            idx = 0
+            while len(platform_assets) < 5:
+                base_asset = platform_assets[idx % len(platform_assets)]
+                platform_assets.append(
+                    self._clone_asset_with_platform(base_asset, platform, len(platform_assets) + 1)
+                )
+                idx += 1
+
+            expanded.extend(platform_assets[:5])
+
+        blueprint["draft_assets"] = expanded
+        coverage = {
+            platform: sum(
+                1
+                for asset in expanded
+                if self._standardize_platform_name(asset.get("platform")) == platform
+            )
+            for platform in desired_platforms
+        }
+        blueprint.setdefault("metadata", {})["asset_counts"] = coverage
+
+    def _standardize_platform_name(self, name: Optional[str]) -> str:
+        if not name:
+            return "generic"
+        normalized = str(name).lower().strip()
+        return self.CHANNEL_PLATFORM_MAP.get(normalized, normalized)
+
+    def _map_channels_to_platforms(self, channels: Optional[Sequence[str]]) -> List[str]:
+        if not channels:
+            return []
+        platforms = {self._standardize_platform_name(ch) for ch in channels if ch}
+        return sorted(platforms)
+
+    def _platform_objective(self, platform: str) -> str:
+        if platform in self.AWARENESS_PLATFORMS:
+            return "awareness"
+        return "conversion"
+
+    def _tone_for_platform(self, platform: Optional[str]) -> Dict[str, Sequence[str]]:
+        """Fetch tone guidance for a platform with graceful fallback."""
+        normalized = self._standardize_platform_name(platform)
+        tone = self.PLATFORM_TONES.get(normalized)
+        if tone:
+            return tone
+        return self.PLATFORM_TONES["generic"]
+
+    def _primary_audience(self, blueprint: Dict[str, Any]) -> str:
+        """Identify the best audience label from the blueprint with fallback."""
+        hypotheses = blueprint.get("audience_hypotheses")
+        if isinstance(hypotheses, dict):
+            audience = hypotheses.get("audience")
+            if audience:
+                return str(audience)
+        elif isinstance(hypotheses, list):
+            for hypothesis in hypotheses:
+                if isinstance(hypothesis, dict):
+                    audience = hypothesis.get("audience")
+                    if audience:
+                        return str(audience)
+        return "Primary Audience"
+
+    def _create_placeholder_asset(
+        self,
+        platform: str,
+        blueprint: Dict[str, Any],
+        campaign: Campaign,
+    ) -> Dict[str, Any]:
+        pillars = blueprint.get("messaging_pillars")
+        if isinstance(pillars, dict):
+            pillar = pillars
+        elif isinstance(pillars, list) and pillars:
+            pillar = pillars[0] if isinstance(pillars[0], dict) else {}
+        else:
+            pillar = {}
+        hook = pillar.get("pillar") or campaign.brief.get("goal", "Campaign Objective")
+        audience = self._primary_audience(blueprint)
+        clean_hook = self._clean_hook_text(hook, platform)
+        headline = self._compose_headline(clean_hook, platform, variant_idx=0)
+        key_messages = pillar.get("key_messages") if isinstance(pillar, dict) else None
+        if isinstance(key_messages, list) and key_messages:
+            key_message = key_messages[0]
+        else:
+            key_message = "Deliver proof across every touchpoint."
+        base_body = f"{key_message} Tailored toward {audience}."
+        primary_text = self._compose_body(base_body, platform, variant_idx=0)
+        variations = self._build_variations(headline, primary_text)
+        return {
+            "id": str(uuid.uuid4()),
+            "platform": platform,
+            "objective": self._platform_objective(platform),
+            "audience_focus": [audience] if audience else [],
+            "headline": headline,
+            "primary_text": primary_text,
+            "cta": "Learn More",
+            "supporting_signals": [],
+            "creative_hooks": [clean_hook or hook],
+            "variations": variations,
+        }
+
+    def _clone_asset_with_platform(
+        self,
+        asset: Dict[str, Any],
+        platform: str,
+        variant_idx: int,
+    ) -> Dict[str, Any]:
+        clone = copy.deepcopy(asset)
+        clone["id"] = str(uuid.uuid4())
+        clone["platform"] = platform
+
+        creative_hooks = clone.get("creative_hooks") or [clone.get("headline")]
+        hook = creative_hooks[(variant_idx - 1) % len(creative_hooks)] if creative_hooks else clone.get("headline")
+        clean_hook = self._clean_hook_text(hook, platform)
+        clone["headline"] = self._compose_headline(clean_hook, platform, variant_idx)
+
+        base_text = clone.get("primary_text") or "Signal-led creative concept emphasising value."
+        clone["primary_text"] = self._compose_body(base_text, platform, variant_idx)
+
+        clone["variations"] = self._build_variations(clone["headline"], clone["primary_text"])
+        clone["objective"] = self._platform_objective(platform)
+        return clone
+
+    def _compose_headline(self, hook: Optional[str], platform: str, variant_idx: int) -> str:
+        tone = self._tone_for_platform(platform)
+        prefixes = tone.get("headline_prefixes") or self.PLATFORM_TONES["generic"]["headline_prefixes"]
+        prefix = prefixes[variant_idx % len(prefixes)]
+        clean_hook = self._clean_hook_text(hook, platform)
+        headline = f"{prefix} {clean_hook}" if clean_hook else prefix
+        return headline[:90]
+
+    def _compose_body(self, base_text: str, platform: str, variant_idx: int) -> str:
+        tone = self._tone_for_platform(platform)
+        suffixes = tone.get("body_suffixes") or self.PLATFORM_TONES["generic"]["body_suffixes"]
+        suffix = suffixes[variant_idx % len(suffixes)]
+        body = f"{base_text.rstrip()} {suffix}"
+        return body[:260]
+
+    def _clean_hook_text(self, hook: Optional[str], platform: str) -> str:
+        if not hook:
+            return ""
+        text = hook.strip()
+        # Remove platform hook prefixes like "Meta Hook:" or "Hook:"
+        prefix_pattern = rf"^(?:{re.escape(platform)}\s+hook|hook):\s*"
+        text = re.sub(prefix_pattern, "", text, flags=re.IGNORECASE)
+        # Remove trailing variant markers (e.g., "| Variant 2", "Variant", "Variant 3")
+        text = re.sub(r"\|\s*variant\s*\d*$", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"variant\s*\d*$", "", text, flags=re.IGNORECASE).strip()
+        return text.strip()
