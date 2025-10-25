@@ -127,12 +127,18 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Link href="/campaigns/new">
+              <Button className="h-8 px-8 text-[13px] font-medium bg-foreground text-background hover:bg-foreground/90">
+                <Plus className="h-4 w-4 mr-1.5" />
+                New Campaign
+              </Button>
+            </Link>
             <Link href="/settings">
-              <Button variant="ghost" size="sm" className="text-[13px] h-8">
+              <Button variant="ghost" className="h-8 px-4 text-[13px]">
                 Settings
               </Button>
             </Link>
-            <Button variant="ghost" size="sm" className="text-[13px] h-8" onClick={() => router.push('/auth/login')}>
+            <Button variant="ghost" className="h-8 px-4 text-[13px]" onClick={() => router.push('/auth/login')}>
               Logout
             </Button>
           </div>
@@ -141,6 +147,17 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-12 max-w-[1200px]">
+        {/* Header with New Campaign Button */}
+        <div className="flex justify-between items-center mb-8 pt-4">
+          <h1 className="text-[40px] font-semibold tracking-[-0.03em]">Dashboard</h1>
+          <Link href="/campaigns/new">
+            <Button className="h-8 px-8 text-[13px] font-medium bg-foreground text-background hover:bg-foreground/90">
+              <Plus className="h-4 w-4 mr-1.5" />
+              New Campaign
+            </Button>
+          </Link>
+        </div>
+
         {/* Stats Bar */}
         {analyticsLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -369,14 +386,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Campaigns Section */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="pt-12 mb-8">
           <h2 className="text-[32px] font-semibold tracking-[-0.03em]">Your Campaigns</h2>
-          <Link href="/campaigns/new">
-            <Button className="h-9 !px-6 text-[13px] bg-foreground text-background hover:bg-foreground/90">
-              <Plus className="h-4 w-4 mr-2" />
-              New Campaign
-            </Button>
-          </Link>
         </div>
 
         {/* Campaign Grid */}
@@ -448,7 +459,7 @@ export default function DashboardPage() {
               </div>
               <Button
                 onClick={() => router.push('/campaigns/new')}
-                className="h-9 !px-6 text-[13px] bg-foreground text-background hover:bg-foreground/90"
+                className="h-9 !px-8 text-[13px] bg-foreground text-background hover:bg-foreground/90"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Create First Campaign

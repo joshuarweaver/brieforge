@@ -25,7 +25,7 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
             <div className="flex flex-col items-center">
               <div
                 className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors',
+                  'w-8 h-8 rounded-full flex items-center justify-center font-bold transition-colors',
                   isActive && 'bg-primary text-primary-foreground',
                   isCompleted && 'bg-primary text-primary-foreground',
                   !isActive && !isCompleted && 'bg-muted text-muted-foreground'
