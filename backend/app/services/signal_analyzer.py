@@ -254,8 +254,7 @@ Provide deep audience insights in JSON format:
     ) -> List[Signal]:
         """Get signals for analysis."""
         query = self.db.query(Signal).filter(
-            Signal.campaign_id == campaign_id,
-            Signal.relevance_score >= min_relevance
+            Signal.campaign_id == campaign_id
         ).order_by(Signal.relevance_score.desc())
 
         if max_signals:

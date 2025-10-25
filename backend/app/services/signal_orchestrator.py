@@ -1,7 +1,8 @@
 """Signal orchestrator for running multiple cartridges and storing results."""
 import asyncio
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 from datetime import datetime
+from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.services.searchapi import get_searchapi_client
@@ -225,7 +226,7 @@ class SignalOrchestrator:
 
     def get_campaign_signals(
         self,
-        campaign_id: int,
+        campaign_id: Union[int, UUID, str],
         min_relevance: float = 0.0,
         source: Optional[str] = None,
         limit: Optional[int] = None
@@ -234,8 +235,8 @@ class SignalOrchestrator:
         Get signals for a campaign with optional filtering.
 
         Args:
-            campaign_id: Campaign ID
-            min_relevance: Minimum relevance score
+            campaign_id: Campaign ID (int, UUID, or str)
+            min_relevance: Minimum relevance score (ignored, kept for API compatibility)
             source: Filter by source platform
             limit: Max number of signals to return
 
@@ -243,8 +244,7 @@ class SignalOrchestrator:
             List of Signal objects
         """
         query = self.db.query(Signal).filter(
-            Signal.campaign_id == campaign_id,
-            Signal.relevance_score >= min_relevance
+            Signal.campaign_id == campaign_id
         )
 
         if source:
@@ -255,4 +255,9 @@ class SignalOrchestrator:
         if limit:
             query = query.limit(limit)
 
-        return query.all()
+        signals = query.all()
+        
+        if not signals:
+            raise ValueError(f"No signals found for campaign {campaign_id}")
+        
+        return signals

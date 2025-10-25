@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_password_hash, verify_password, create_access_token
 from app.core.config import settings
+from app.api.deps import get_current_user
 from app.models import User, Workspace
 from app.schemas import UserCreate, UserLogin, TokenResponse, UserResponse
 
@@ -83,8 +84,14 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     )
 
 
+@router.get("/me", response_model=UserResponse)
+def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """Get current authenticated user information."""
+    return UserResponse.model_validate(current_user)
+
+
 @router.post("/refresh", response_model=TokenResponse)
-def refresh_token(current_user: User = Depends(get_db)):
+def refresh_token(current_user: User = Depends(get_current_user)):
     """Refresh access token."""
     # For now, just return a new token
     # In production, you'd want separate refresh token logic

@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "fieldcraft-api-v1",
 		"name": "Fieldcraft API - Complete Collection",
-		"description": "Complete API collection for Fieldcraft - Intelligence-driven campaign generation system\n\n**Features:**\n- User authentication with JWT\n- Multi-tenant workspaces\n- Campaign management\n- Signal collection from 7 platforms (Google, YouTube, Meta, LinkedIn, TikTok, Reddit, Pinterest)\n- AI-powered signal analysis with Claude/GPT\n\n**Setup:**\n1. Import this collection\n2. Create environment with variables: `base_url`, `email`, `password`\n3. Run \"Login\" request to get auth token\n4. Token is automatically saved and used in subsequent requests",
+		"description": "Complete API collection for Fieldcraft - Intelligence-driven campaign generation system\n\n**Features:**\n- User authentication with JWT\n- Multi-tenant workspaces with UUID support\n- Campaign management\n- Signal collection from 7 platforms (Google, YouTube, Meta, LinkedIn, TikTok, Reddit, Pinterest)\n- AI-powered signal analysis with Claude/GPT\n- Strategic Brief Generation (NEW) - 2-page comprehensive marketing strategy documents\n- Audience Insights (NEW) - Deep audience profiling and intelligence\n\n**Setup:**\n1. Import this collection\n2. Create environment with variables: `base_url`, `email`, `password`\n3. Run \"Login\" request to get auth token\n4. Token is automatically saved and used in subsequent requests\n\n**Recommended Workflow:**\n1. Register/Login\n2. Create Campaign\n3. Collect Signals\n4. Run Signal Analysis\n5. Get Audience Insights (NEW)\n6. Generate Strategic Brief (NEW)\n7. Review and export deliverables",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"auth": {
@@ -394,7 +394,7 @@
 						},
 						"description": "Run comprehensive AI analysis using Claude"
 					},
-					"response": []
+	 				"response": []
 				},
 				{
 					"name": "Analyze - Competitor Analysis",
@@ -523,6 +523,198 @@
 			]
 		},
 		{
+			"name": "Strategic Brief",
+			"item": [
+				{
+					"name": "Generate Strategic Brief",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set(\"brief_id\", response.id);",
+									"    console.log(\"Strategic Brief ID:\", response.id);",
+									"    ",
+									"    pm.test(\"Brief generated\", function () {",
+									"        pm.expect(response.status).to.be.oneOf([\"completed\", \"pending\", \"failed\"]);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"llm_provider\": \"claude\",\n    \"async_mode\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/strategic-brief",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "strategic-brief"]
+						},
+						"description": "Generate a comprehensive 2-page strategic brief from campaign data and signal analysis"
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Brief - With Custom Instructions",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"llm_provider\": \"claude\",\n    \"custom_instructions\": \"Focus on B2B SaaS positioning and enterprise sales\",\n    \"async_mode\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/strategic-brief",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "strategic-brief"]
+						},
+						"description": "Generate strategic brief with custom instructions"
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Brief - Async Mode",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"llm_provider\": \"claude\",\n    \"async_mode\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/strategic-brief",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "strategic-brief"]
+						},
+						"description": "Generate strategic brief in background (returns immediately)"
+					},
+					"response": []
+				},
+				{
+					"name": "List Campaign Briefs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/strategic-briefs?limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "strategic-briefs"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "List all strategic briefs for a campaign"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Strategic Brief",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/strategic-briefs/{{brief_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "strategic-briefs", "{{brief_id}}"]
+						},
+						"description": "Get a specific strategic brief by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Strategic Brief",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/strategic-briefs/{{brief_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "strategic-briefs", "{{brief_id}}"]
+						},
+						"description": "Delete a strategic brief"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Audience Insights",
+			"item": [
+				{
+					"name": "Get Audience Insights",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"llm_provider\": \"claude\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/audience-insights",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "audience-insights"]
+						},
+						"description": "Generate detailed audience intelligence including demographics, pain points, motivations, objections, and media habits"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Audience Insights - Focused",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"llm_provider\": \"claude\",\n    \"focus_areas\": [\"pain_points\", \"motivations\", \"objections\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/audience-insights",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "audience-insights"]
+						},
+						"description": "Get audience insights focused on specific areas"
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "System",
 			"item": [
 				{
@@ -644,6 +836,12 @@
 			"value": "",
 			"type": "string",
 			"description": "UUID for signal analysis (auto-saved from Analyze)"
+		},
+		{
+			"key": "brief_id",
+			"value": "",
+			"type": "string",
+			"description": "UUID for strategic brief (auto-saved from Generate Brief)"
 		}
 	]
 }

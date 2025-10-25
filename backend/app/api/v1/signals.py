@@ -125,12 +125,19 @@ def get_campaign_signals(
         )
 
     orchestrator = SignalOrchestrator(db)
-    signals = orchestrator.get_campaign_signals(
-        campaign_id=campaign_id,
-        min_relevance=min_relevance,
-        source=source,
-        limit=limit
-    )
+
+    try:
+        signals = orchestrator.get_campaign_signals(
+            campaign_id=campaign_id,
+            min_relevance=min_relevance,
+            source=source,
+            limit=limit
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
 
     # Convert to response format
     return [

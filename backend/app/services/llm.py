@@ -267,6 +267,50 @@ class LLMService:
         """
         return len(text) // 4
 
+    def get_model_name(self) -> str:
+        """Get the current model name based on provider."""
+        if self.provider == LLMProvider.CLAUDE:
+            return self.CLAUDE_MODEL
+        elif self.provider == LLMProvider.OPENAI:
+            return self.OPENAI_MODEL
+        else:
+            return "unknown"
+
+    def generate(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        max_tokens: int = 4096,
+        temperature: float = 1.0,
+        provider: Optional[LLMProvider] = None,
+        model: Optional[str] = None,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Alias for complete() method for backward compatibility.
+        
+        Args:
+            prompt: User prompt/message
+            system_prompt: System prompt (optional)
+            max_tokens: Maximum tokens to generate
+            temperature: Sampling temperature (0-1)
+            provider: Override default provider
+            model: Override default model
+            **kwargs: Additional provider-specific parameters
+
+        Returns:
+            Dict with 'content', 'usage', 'model', 'provider'
+        """
+        return self.complete(
+            prompt=prompt,
+            system_prompt=system_prompt,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            provider=provider,
+            model=model,
+            **kwargs
+        )
+
 
 # Singleton instances
 _llm_service_claude: Optional[LLMService] = None
