@@ -5,6 +5,210 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+function ProcessTimeline() {
+  const [activeStep, setActiveStep] = useState(0);
+
+  const steps = [
+    {
+      num: '01',
+      title: 'Define',
+      desc: 'Start by setting precise campaign goals and identifying your target audience personas. Map out the competitive landscape to understand differentiation opportunities and market positioning.',
+      visual: (
+        <div className="space-y-3">
+          <div className="p-3 rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: '0ms', animationFillMode: 'backwards' }}>
+            <div className="text-[11px] font-semibold text-blue-600 mb-1.5">GOAL</div>
+            <div className="text-[13px] text-slate-700">Increase B2B sign-ups by 40%</div>
+          </div>
+          <div className="p-3 rounded-lg border border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}>
+            <div className="text-[11px] font-semibold text-purple-600 mb-1.5">AUDIENCE</div>
+            <div className="text-[13px] text-slate-700">Marketing Directors, mid-market SaaS</div>
+          </div>
+          <div className="flex gap-2 animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}>
+            {['HubSpot', 'Marketo', 'ActiveCampaign'].map((comp, idx) => (
+              <div key={comp} className="px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-[11px] font-medium text-slate-600 hover:scale-105 transition-transform duration-200">
+                {comp}
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    },
+    {
+      num: '02',
+      title: 'Collect',
+      desc: 'Omnisearch automatically gathers real-time signals from 15+ platforms including search engines, social media, and forums. Each signal is tagged, attributed to its source, and processed for relevance.',
+      visual: (
+        <div className="space-y-2.5">
+          {[
+            { platform: 'Google', signals: 247, color: 'blue' },
+            { platform: 'LinkedIn', signals: 183, color: 'indigo' },
+            { platform: 'Reddit', signals: 156, color: 'orange' },
+            { platform: 'Twitter', signals: 142, color: 'cyan' },
+            { platform: 'YouTube', signals: 119, color: 'red' }
+          ].map((item, i) => (
+            <div key={item.platform} className="flex items-center gap-3 animate-in fade-in slide-in-from-left-2 duration-500" style={{ animationDelay: `${i * 80}ms`, animationFillMode: 'backwards' }}>
+              <div className="w-20 text-[12px] font-medium text-slate-700">{item.platform}</div>
+              <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full bg-gradient-to-r from-${item.color}-500 to-${item.color}-600 rounded-full animate-in slide-in-from-left-full duration-1000`}
+                  style={{
+                    width: `${(item.signals / 250) * 100}%`,
+                    animationDelay: `${i * 80 + 200}ms`,
+                    animationFillMode: 'backwards'
+                  }}
+                />
+              </div>
+              <div className="w-12 text-[11px] font-semibold text-slate-600">{item.signals}</div>
+            </div>
+          ))}
+        </div>
+      )
+    },
+    {
+      num: '03',
+      title: 'Analyze',
+      desc: 'Multiple frontier AI models process the collected intelligence in parallel, each bringing unique analytical capabilities. They identify patterns, extract insights, and synthesize findings into actionable intelligence.',
+      visual: (
+        <div className="space-y-3">
+          {[
+            { agent: 'Claude 4.5', task: 'Competitor Analysis', color: 'from-indigo-500 to-purple-500' },
+            { agent: 'GPT-4', task: 'Audience Insights', color: 'from-emerald-500 to-teal-500' },
+            { agent: 'Gemini Pro', task: 'Creative Patterns', color: 'from-blue-500 to-cyan-500' }
+          ].map((item, i) => (
+            <div key={item.agent} className="p-3 rounded-lg border border-border bg-white hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'backwards' }}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[12px] font-semibold text-slate-700">{item.agent}</span>
+                <span className="text-[10px] text-emerald-600 font-medium animate-pulse">ANALYZING</span>
+              </div>
+              <div className="h-1.5 w-full bg-gradient-to-r rounded-full animate-pulse" style={{ backgroundImage: `linear-gradient(to right, ${item.color})` }} />
+              <div className="text-[11px] text-muted-foreground mt-2">{item.task}</div>
+            </div>
+          ))}
+        </div>
+      )
+    },
+    {
+      num: '04',
+      title: 'Generate',
+      desc: 'AI synthesizes all insights into a comprehensive 2-page strategic brief with complete citation trails. Every recommendation is backed by verifiable data and linked directly to source signals.',
+      visual: (
+        <div className="space-y-2.5">
+          <div className="p-4 rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: '0ms', animationFillMode: 'backwards' }}>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="text-[12px] font-semibold text-slate-700">Positioning & Messaging</div>
+                <div className="text-[10px] text-slate-600 font-medium">32 citations</div>
+              </div>
+              <div className="space-y-1.5">
+                <div className="h-1.5 w-full bg-slate-300 rounded animate-in slide-in-from-left-full duration-700" style={{ animationDelay: '100ms', animationFillMode: 'backwards' }} />
+                <div className="h-1.5 w-5/6 bg-slate-300 rounded animate-in slide-in-from-left-full duration-700" style={{ animationDelay: '200ms', animationFillMode: 'backwards' }} />
+                <div className="h-1.5 w-4/5 bg-slate-300 rounded animate-in slide-in-from-left-full duration-700" style={{ animationDelay: '300ms', animationFillMode: 'backwards' }} />
+              </div>
+            </div>
+          </div>
+          <div className="p-4 rounded-lg bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="text-[12px] font-semibold text-slate-700">Hook Strategy & Objections</div>
+                <div className="text-[10px] text-slate-600 font-medium">28 citations</div>
+              </div>
+              <div className="space-y-1.5">
+                <div className="h-1.5 w-full bg-amber-300 rounded animate-in slide-in-from-left-full duration-700" style={{ animationDelay: '250ms', animationFillMode: 'backwards' }} />
+                <div className="h-1.5 w-3/4 bg-amber-300 rounded animate-in slide-in-from-left-full duration-700" style={{ animationDelay: '350ms', animationFillMode: 'backwards' }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      num: '05',
+      title: 'Execute',
+      desc: 'Export your strategic brief in multiple formats for different stakeholders and use cases. Launch campaigns with full confidence knowing every decision is backed by transparent, verifiable intelligence.',
+      visual: (
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {['PDF', 'Markdown', 'JSON', 'CSV', 'DOCX'].map((format, idx) => (
+              <div key={format} className="px-3 py-1.5 rounded-md bg-gradient-to-br from-emerald-100 to-teal-50 border border-emerald-200 text-[11px] font-semibold text-emerald-700 hover:scale-110 transition-transform duration-200 animate-in fade-in zoom-in duration-300" style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'backwards' }}>
+                {format}
+              </div>
+            ))}
+          </div>
+          <div className="p-3 rounded-lg border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-semibold text-green-700">READY TO LAUNCH</span>
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            </div>
+            <div className="text-[12px] text-slate-700">94 inline citations • 8 min generation time</div>
+          </div>
+        </div>
+      )
+    },
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % steps.length);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="max-w-5xl mx-auto">
+      {/* Steps Tabs */}
+      <div className="flex border-b border-border mb-8">
+        {steps.map((step, i) => (
+          <button
+            key={i}
+            onClick={() => setActiveStep(i)}
+            className={`flex-1 pb-4 px-4 transition-all duration-300 relative ${
+              i === activeStep
+                ? 'opacity-100'
+                : 'opacity-50 hover:opacity-75'
+            }`}
+          >
+            <div className="text-center space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground tracking-wider">
+                {step.num}
+              </div>
+              <div className="text-[14px] font-semibold tracking-tight">
+                {step.title}
+              </div>
+            </div>
+            {i === activeStep && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground" />
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Active Step Content */}
+      <div className="grid md:grid-cols-2 gap-8 items-start">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-[24px] font-semibold tracking-tight mb-2">
+              {steps[activeStep].title}
+            </h3>
+            <p className="text-[15px] text-muted-foreground leading-relaxed">
+              {steps[activeStep].desc}
+            </p>
+          </div>
+        </div>
+
+        <div className="p-6 rounded-xl border border-border bg-slate-50">
+          <div
+            key={activeStep}
+            className="animate-in fade-in slide-in-from-right-2 duration-500"
+          >
+            {steps[activeStep].visual}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
 export default function LandingPage() {
   const [scrollY, setScrollY] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -776,9 +980,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Process Section */}
-      <section id="product" className="relative py-24 px-6 border-t border-border">
-        <div className="container mx-auto max-w-[1100px] relative">
+      {/* Process Section - Interactive */}
+      <section id="product" className="relative py-32 px-6 border-t border-border">
+        <div className="container mx-auto max-w-[1200px] relative">
           <div className="text-center mb-20">
             <h2 className="text-[40px] md:text-[48px] font-semibold tracking-[-0.03em] leading-[1.2] mb-4">
               From zero to strategic brief
@@ -788,38 +992,12 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Dynamic Timeline */}
-          <div className="relative">
-            {/* Connecting line */}
-            <div className="absolute top-6 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-border to-transparent hidden md:block" />
-
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-6">
-              {[
-                { num: 1, title: 'Define', desc: 'Set campaign goals, audiences, competitors', color: 'from-blue-500 to-indigo-600' },
-                { num: 2, title: 'Collect', desc: 'Gather signals from 15+ platforms', color: 'from-purple-500 to-pink-600' },
-                { num: 3, title: 'Analyze', desc: 'AI agents analyze in parallel', color: 'from-teal-500 to-cyan-600' },
-                { num: 4, title: 'Generate', desc: '2-page strategic brief with citations', color: 'from-amber-500 to-orange-600' },
-                { num: 5, title: 'Execute', desc: 'Export and launch with evidence', color: 'from-green-500 to-emerald-600' },
-              ].map((step) => (
-                <div key={step.num} className="relative group">
-                  <div className="relative z-10 mb-6">
-                    <div className="w-12 h-12 mx-auto rounded-full bg-background border-2 border-border flex items-center justify-center text-[15px] font-semibold transition-all duration-300 group-hover:scale-110 group-hover:border-foreground/40 group-hover:shadow-lg">
-                      <span className={`bg-gradient-to-br ${step.color} bg-clip-text text-transparent`}>{step.num}</span>
-                    </div>
-                  </div>
-                  <div className="text-center space-y-2">
-                    <h3 className="text-[15px] font-semibold">{step.title}</h3>
-                    <p className="text-[13px] text-muted-foreground leading-[1.6]">{step.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ProcessTimeline />
         </div>
       </section>
 
       {/* Use Cases Section */}
-      <section className="py-24 px-6">
+      <section className="py-32 px-6 border-t border-border">
         <div className="container mx-auto max-w-[1100px]">
           <div className="text-center mb-16">
             <h2 className="text-[40px] md:text-[48px] font-semibold tracking-[-0.03em] leading-[1.2] mb-4">
@@ -830,25 +1008,51 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-2 gap-6">
             {[
               {
                 title: 'Performance Marketers',
-                desc: 'Data-driven teams who need verifiable intelligence to justify budget allocation and demonstrate ROI',
+                desc: 'Build campaigns backed by verifiable data to justify every budget decision. Track competitor positioning, audience sentiment, and messaging trends across 15+ platforms.',
+                benefits: [
+                  'Justify budget allocation with cited sources',
+                  'Demonstrate ROI with transparent intelligence',
+                  'Respond to market changes in real-time'
+                ],
                 gradient: 'from-blue-500/10 to-indigo-500/5',
                 accent: 'from-blue-500 to-indigo-600',
               },
               {
                 title: 'Strategy Consultants',
-                desc: 'Agencies delivering evidence-backed recommendations with full sourcing and citation trails',
+                desc: 'Deliver client recommendations with full citation trails and source attribution. Present strategic briefs that showcase deep market research in minutes instead of weeks.',
+                benefits: [
+                  'Generate evidence-backed client deliverables',
+                  'Export professional PDFs with inline citations',
+                  'Scale research capacity without hiring'
+                ],
                 gradient: 'from-purple-500/10 to-pink-500/5',
                 accent: 'from-purple-500 to-pink-600',
               },
               {
                 title: 'Growth Teams',
-                desc: 'Startups launching with limited budgets who need high-confidence strategic decisions',
+                desc: 'Launch with confidence on limited budgets by making high-conviction strategic decisions. Skip expensive agencies and get strategic briefs based on live market intelligence.',
+                benefits: [
+                  'Reduce campaign launch time from weeks to hours',
+                  'Avoid costly positioning mistakes early',
+                  'Compete with larger teams through AI leverage'
+                ],
                 gradient: 'from-teal-500/10 to-cyan-500/5',
                 accent: 'from-teal-500 to-cyan-600',
+              },
+              {
+                title: 'Product Marketing',
+                desc: 'Position new products with intelligence from real customer conversations and competitor analysis. Craft messaging that resonates based on proven patterns, not assumptions.',
+                benefits: [
+                  'Discover winning messaging from competitor analysis',
+                  'Identify objections before launch from forums',
+                  'Validate positioning with market data'
+                ],
+                gradient: 'from-amber-500/10 to-orange-500/5',
+                accent: 'from-amber-500 to-orange-600',
               },
             ].map((useCase, i) => (
               <div
@@ -857,12 +1061,22 @@ export default function LandingPage() {
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${useCase.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
 
-                <div className="relative p-8 space-y-4">
+                <div className="relative p-8 space-y-5">
                   <div className={`h-1 w-12 bg-gradient-to-r ${useCase.accent} rounded-full transition-all duration-300 group-hover:w-20`} />
 
-                  <h3 className="text-[18px] font-semibold">{useCase.title}</h3>
+                  <div>
+                    <h3 className="text-[20px] font-semibold mb-2">{useCase.title}</h3>
+                    <p className="text-[14px] text-muted-foreground leading-[1.7]">{useCase.desc}</p>
+                  </div>
 
-                  <p className="text-[14px] text-muted-foreground leading-[1.7]">{useCase.desc}</p>
+                  <div className="space-y-2 pt-2">
+                    {useCase.benefits.map((benefit, idx) => (
+                      <div key={idx} className="flex items-start gap-2.5">
+                        <div className={`w-1 h-1 rounded-full bg-gradient-to-r ${useCase.accent} mt-2 flex-shrink-0`} />
+                        <span className="text-[13px] text-slate-700 leading-[1.6]">{benefit}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
