@@ -1,6 +1,8 @@
 """User and Workspace database models."""
 from datetime import datetime
+import uuid
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
@@ -11,7 +13,7 @@ class Workspace(Base):
 
     __tablename__ = "workspaces"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String, nullable=False)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     settings = Column(JSON, default={})  # JSONB for workspace settings
@@ -31,7 +33,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
-    workspace_id = Column(Integer, ForeignKey("workspaces.id"), nullable=True)
+    workspace_id = Column(UUID(as_uuid=True), ForeignKey("workspaces.id"), nullable=True)
     role = Column(String, default="user")  # user, admin
     created_at = Column(DateTime, default=datetime.utcnow)
 

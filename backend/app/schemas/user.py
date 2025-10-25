@@ -1,6 +1,7 @@
 """User and Workspace Pydantic schemas."""
 from datetime import datetime
 from typing import Optional, Dict, Any
+from uuid import UUID
 from pydantic import BaseModel, EmailStr
 
 
@@ -24,7 +25,7 @@ class WorkspaceUpdate(BaseModel):
 
 class WorkspaceResponse(WorkspaceBase):
     """Workspace response schema."""
-    id: int
+    id: UUID
     owner_id: int
     created_at: datetime
 
@@ -52,7 +53,7 @@ class UserLogin(BaseModel):
 class UserResponse(UserBase):
     """User response schema."""
     id: int
-    workspace_id: Optional[int]
+    workspace_id: Optional[UUID]
     role: str
     created_at: datetime
 

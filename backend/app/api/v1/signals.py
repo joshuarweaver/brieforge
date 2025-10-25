@@ -9,7 +9,7 @@ from app.api.deps import get_current_user, get_current_workspace
 from app.models import User, Campaign, Signal
 from app.services.signal_orchestrator import SignalOrchestrator
 
-router = APIRouter()
+router = APIRouter(prefix="/campaigns", tags=["signals"])
 
 
 class CollectSignalsRequest(BaseModel):

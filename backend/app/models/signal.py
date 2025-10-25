@@ -1,6 +1,8 @@
 """Signal database model."""
 from datetime import datetime
+import uuid
 from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, JSON
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
@@ -11,8 +13,8 @@ class Signal(Base):
 
     __tablename__ = "signals"
 
-    id = Column(Integer, primary_key=True, index=True)
-    campaign_id = Column(Integer, ForeignKey("campaigns.id"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    campaign_id = Column(UUID(as_uuid=True), ForeignKey("campaigns.id"), nullable=False)
 
     # Signal metadata
     source = Column(String, nullable=False)  # serp_organic, meta_ads, reddit_organic, etc.

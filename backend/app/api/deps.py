@@ -1,5 +1,6 @@
 """API dependencies."""
 from typing import Generator, Optional
+from uuid import UUID
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -49,7 +50,7 @@ def get_current_user(
     return user
 
 
-def get_current_workspace(current_user: User = Depends(get_current_user)) -> int:
+def get_current_workspace(current_user: User = Depends(get_current_user)) -> UUID:
     """Get current user's workspace ID."""
     if current_user.workspace_id is None:
         raise HTTPException(

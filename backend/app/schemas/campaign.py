@@ -1,6 +1,7 @@
 """Campaign Pydantic schemas."""
 from datetime import datetime
 from typing import List, Optional, Dict, Any
+from uuid import UUID
 from pydantic import BaseModel
 
 
@@ -37,8 +38,8 @@ class CampaignUpdate(BaseModel):
 
 class CampaignResponse(CampaignBase):
     """Campaign response schema."""
-    id: int
-    workspace_id: int
+    id: UUID
+    workspace_id: UUID
     status: str
     created_at: datetime
     updated_at: datetime
@@ -58,8 +59,8 @@ class SignalEvidence(BaseModel):
 
 class SignalResponse(BaseModel):
     """Signal response schema."""
-    id: int
-    campaign_id: int
+    id: UUID
+    campaign_id: UUID
     source: str
     search_method: str
     query: str

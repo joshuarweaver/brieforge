@@ -1,5 +1,6 @@
 """Campaign endpoints."""
 from typing import List
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -49,7 +50,7 @@ def create_campaign(
 
 @router.get("/{campaign_id}", response_model=CampaignResponse)
 def get_campaign(
-    campaign_id: int,
+    campaign_id: UUID,
     workspace_id: int = Depends(get_current_workspace),
     db: Session = Depends(get_db)
 ):
@@ -70,7 +71,7 @@ def get_campaign(
 
 @router.patch("/{campaign_id}", response_model=CampaignResponse)
 def update_campaign(
-    campaign_id: int,
+    campaign_id: UUID,
     campaign_data: CampaignUpdate,
     workspace_id: int = Depends(get_current_workspace),
     db: Session = Depends(get_db)
@@ -103,7 +104,7 @@ def update_campaign(
 
 @router.delete("/{campaign_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_campaign(
-    campaign_id: int,
+    campaign_id: UUID,
     workspace_id: int = Depends(get_current_workspace),
     db: Session = Depends(get_db)
 ):

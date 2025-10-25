@@ -134,10 +134,13 @@ class SignalCartridge(ABC):
         brief: Dict[str, Any]
     ) -> float:
         """
-        Compute relevance score for a piece of evidence.
+        Compute relevance score for a piece of evidence using multi-factor analysis.
 
-        Default implementation uses keyword matching.
-        Override for more sophisticated scoring.
+        Improved implementation using:
+        - Weighted keyword matching with partial matches
+        - Term frequency consideration
+        - Context relevance (title vs snippet)
+        - Competitive intelligence weighting
 
         Args:
             evidence: Evidence to score
@@ -147,31 +150,77 @@ class SignalCartridge(ABC):
             Relevance score (0-1)
         """
         score = 0.0
-        text = f"{evidence.title} {evidence.snippet}".lower()
+        title_text = evidence.title.lower()
+        snippet_text = evidence.snippet.lower()
+        combined_text = f"{title_text} {snippet_text}"
 
-        # Check for goal keywords
-        goal = brief.get("goal", "").lower()
-        if goal and goal in text:
-            score += 0.3
+        # Helper function for weighted keyword matching
+        def keyword_match_score(keywords, text, title_weight=0.6, snippet_weight=0.4):
+            """Calculate score with title/snippet weighting."""
+            if not keywords:
+                return 0.0
+            
+            title_matches = sum(1 for kw in keywords if kw.lower() in title_text)
+            snippet_matches = sum(1 for kw in keywords if kw.lower() in snippet_text)
+            
+            title_score = (title_matches / len(keywords)) * title_weight
+            snippet_score = (snippet_matches / len(keywords)) * snippet_weight
+            
+            return title_score + snippet_score
 
-        # Check for offer keywords
-        offer = brief.get("offer", "").lower()
-        if offer and offer in text:
-            score += 0.3
+        # 1. Goal relevance (weight: 0.25)
+        goal = brief.get("goal", "")
+        if goal:
+            # Split multi-word goals for partial matching
+            goal_keywords = [word for word in goal.lower().split() if len(word) > 3]
+            if goal_keywords:
+                goal_score = keyword_match_score(goal_keywords, combined_text)
+                score += goal_score * 0.25
 
-        # Check for audience keywords
+        # 2. Offer/product relevance (weight: 0.30)
+        offer = brief.get("offer", "")
+        if offer:
+            offer_keywords = [word for word in offer.lower().split() if len(word) > 3]
+            if offer_keywords:
+                offer_score = keyword_match_score(offer_keywords, combined_text)
+                score += offer_score * 0.30
+
+        # 3. Audience relevance (weight: 0.20)
         audiences = brief.get("audiences", [])
-        for audience in audiences:
-            if audience.lower() in text:
-                score += 0.2
-                break
+        if audiences:
+            # Check all audiences, use highest match
+            audience_scores = []
+            for audience in audiences:
+                audience_keywords = [word for word in audience.lower().split() if len(word) > 3]
+                if audience_keywords:
+                    aud_score = keyword_match_score(audience_keywords, combined_text)
+                    audience_scores.append(aud_score)
+            
+            if audience_scores:
+                score += max(audience_scores) * 0.20
 
-        # Check for competitor keywords
+        # 4. Competitive intelligence (weight: 0.25)
         competitors = brief.get("competitors", [])
-        for competitor in competitors:
-            if competitor.lower() in text:
-                score += 0.2
-                break
+        if competitors:
+            competitor_matches = sum(1 for comp in competitors if comp.lower() in combined_text)
+            if competitor_matches > 0:
+                # Boost score for competitive intelligence
+                comp_score = min(competitor_matches / len(competitors), 1.0)
+                score += comp_score * 0.25
+
+        # 5. Bonus for strong title relevance
+        # If title contains multiple key terms, add small bonus
+        key_terms = []
+        if goal:
+            key_terms.extend(goal.lower().split())
+        if offer:
+            key_terms.extend(offer.lower().split())
+        
+        key_terms = [t for t in key_terms if len(t) > 3]
+        if key_terms:
+            title_term_matches = sum(1 for term in key_terms if term in title_text)
+            if title_term_matches >= 2:
+                score += 0.10
 
         return min(score, 1.0)
 
