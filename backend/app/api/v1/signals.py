@@ -1,5 +1,6 @@
 """Signal collection API endpoints."""
 from typing import List, Optional
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -20,7 +21,7 @@ class CollectSignalsRequest(BaseModel):
 
 class CollectSignalsResponse(BaseModel):
     """Response from signal collection."""
-    campaign_id: int
+    campaign_id: UUID
     cartridges_run: int
     total_signals: int
     errors: List[dict]
@@ -29,8 +30,8 @@ class CollectSignalsResponse(BaseModel):
 
 class SignalResponse(BaseModel):
     """Signal response schema."""
-    id: int
-    campaign_id: int
+    id: UUID
+    campaign_id: UUID
     source: str
     search_method: str
     query: str
@@ -44,11 +45,11 @@ class SignalResponse(BaseModel):
 
 @router.post("/{campaign_id}/signals/collect", response_model=CollectSignalsResponse)
 async def collect_signals(
-    campaign_id: int,
+    campaign_id: UUID,
     request: CollectSignalsRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    workspace_id: int = Depends(get_current_workspace)
+    workspace_id: UUID = Depends(get_current_workspace)
 ):
     """
     Collect signals for a campaign using signal cartridges.
@@ -93,13 +94,13 @@ async def collect_signals(
 
 @router.get("/{campaign_id}/signals", response_model=List[SignalResponse])
 def get_campaign_signals(
-    campaign_id: int,
+    campaign_id: UUID,
     min_relevance: float = 0.0,
     source: Optional[str] = None,
     limit: Optional[int] = 100,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    workspace_id: int = Depends(get_current_workspace)
+    workspace_id: UUID = Depends(get_current_workspace)
 ):
     """
     Get signals for a campaign with optional filtering.

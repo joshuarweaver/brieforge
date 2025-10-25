@@ -624,22 +624,26 @@
 		{
 			"key": "user_id",
 			"value": "",
-			"type": "string"
+			"type": "string",
+			"description": "Integer ID for user"
 		},
 		{
 			"key": "workspace_id",
 			"value": "",
-			"type": "string"
+			"type": "string",
+			"description": "UUID for workspace (auto-saved from Register)"
 		},
 		{
 			"key": "campaign_id",
 			"value": "",
-			"type": "string"
+			"type": "string",
+			"description": "UUID for campaign (auto-saved from Create Campaign)"
 		},
 		{
 			"key": "analysis_id",
 			"value": "",
-			"type": "string"
+			"type": "string",
+			"description": "UUID for signal analysis (auto-saved from Analyze)"
 		}
 	]
 }

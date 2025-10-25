@@ -1,5 +1,6 @@
 """Workspace endpoints."""
 from typing import List
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -47,7 +48,7 @@ def create_workspace(
 
 @router.get("/{workspace_id}", response_model=WorkspaceResponse)
 def get_workspace(
-    workspace_id: int,
+    workspace_id: UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -72,7 +73,7 @@ def get_workspace(
 
 @router.patch("/{workspace_id}", response_model=WorkspaceResponse)
 def update_workspace(
-    workspace_id: int,
+    workspace_id: UUID,
     workspace_data: WorkspaceUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -107,7 +108,7 @@ def update_workspace(
 
 @router.delete("/{workspace_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_workspace(
-    workspace_id: int,
+    workspace_id: UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):

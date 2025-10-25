@@ -1,5 +1,6 @@
 """Analysis API endpoints."""
 from typing import List, Optional
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -25,8 +26,8 @@ class AnalyzeRequest(BaseModel):
 
 class SignalAnalysisResponse(BaseModel):
     """Signal analysis response."""
-    id: int
-    campaign_id: int
+    id: UUID
+    campaign_id: UUID
     analysis_type: str
     status: str
     llm_provider: Optional[str]
@@ -59,7 +60,7 @@ class SignalAnalysisResponse(BaseModel):
 
 
 def run_analysis_task(
-    campaign_id: int,
+    campaign_id: UUID,
     analysis_type: SignalAnalysisType,
     llm_provider: LLMProvider,
     max_signals: Optional[int],
@@ -85,7 +86,7 @@ def run_analysis_task(
     status_code=status.HTTP_200_OK
 )
 def analyze_campaign_signals(
-    campaign_id: int,
+    campaign_id: UUID,
     request: AnalyzeRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
@@ -178,7 +179,7 @@ def analyze_campaign_signals(
     response_model=List[SignalAnalysisResponse]
 )
 def list_campaign_analyses(
-    campaign_id: int,
+    campaign_id: UUID,
     analysis_type: Optional[SignalAnalysisType] = None,
     status_filter: Optional[SignalAnalysisStatus] = None,
     limit: Optional[int] = 10,
@@ -230,7 +231,7 @@ def list_campaign_analyses(
     response_model=SignalAnalysisResponse
 )
 def get_analysis(
-    analysis_id: int,
+    analysis_id: UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -265,7 +266,7 @@ def get_analysis(
     status_code=status.HTTP_204_NO_CONTENT
 )
 def delete_analysis(
-    analysis_id: int,
+    analysis_id: UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
