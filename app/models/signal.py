@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
+from app.models.signal_enrichment import SignalEnrichment
 
 
 class Signal(Base):
@@ -29,6 +30,7 @@ class Signal(Base):
     #   metadata: Dict  # Platform-specific data (upvotes, views, ad spend indicators, etc.)
     # }
     evidence = Column(JSON, nullable=False)
+    provenance = Column(JSON, nullable=False, default=dict)
 
     # Scoring
     relevance_score = Column(Float, default=0.0)  # 0.0-1.0, calculated by Insight Lattice
@@ -37,3 +39,8 @@ class Signal(Base):
 
     # Relationships
     campaign = relationship("Campaign", back_populates="signals")
+    enrichments = relationship(
+        "SignalEnrichment",
+        back_populates="signal",
+        cascade="all, delete-orphan"
+    )

@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    API_KEY_PREFIX: str = "fc"
+    API_KEY_HEADER_NAME: str = "X-API-Key"
 
     # LLM APIs
     ANTHROPIC_API_KEY: str

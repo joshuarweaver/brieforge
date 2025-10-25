@@ -43,3 +43,8 @@ class Campaign(Base):
     analyses = relationship("Analysis", back_populates="campaign", cascade="all, delete-orphan")
     assets = relationship("GeneratedAsset", back_populates="campaign", cascade="all, delete-orphan")
     strategic_briefs = relationship("StrategicBrief", back_populates="campaign", cascade="all, delete-orphan")
+    blueprint_artifacts = relationship(
+        "CampaignBlueprintArtifact",
+        back_populates="campaign",
+        cascade="all, delete-orphan",
+    )

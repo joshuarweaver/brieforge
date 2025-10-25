@@ -41,13 +41,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     """User creation schema."""
-    password: str
-
-
-class UserLogin(BaseModel):
-    """User login schema."""
-    email: EmailStr
-    password: str
+    workspace_name: Optional[str] = None
 
 
 class UserResponse(UserBase):
@@ -61,8 +55,30 @@ class UserResponse(UserBase):
         from_attributes = True
 
 
-class TokenResponse(BaseModel):
-    """Token response schema."""
-    access_token: str
-    token_type: str = "bearer"
+class APIKeyCreate(BaseModel):
+    """API key creation payload."""
+    name: Optional[str] = None
+
+
+class APIKeyMetadata(BaseModel):
+    """API key metadata (no secret)."""
+    id: UUID
+    name: str
+    created_at: datetime
+    last_used_at: Optional[datetime] = None
+    revoked_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class APIKeyWithSecretResponse(BaseModel):
+    """Response when a new API key secret is issued."""
+    api_key: str
+    key: APIKeyMetadata
+
+
+class RegistrationResponse(APIKeyWithSecretResponse):
+    """Registration response with associated resources."""
     user: UserResponse
+    workspace: WorkspaceResponse

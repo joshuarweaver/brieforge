@@ -1,847 +1,1489 @@
 {
-	"info": {
-		"_postman_id": "fieldcraft-api-v1",
-		"name": "Fieldcraft API - Complete Collection",
-		"description": "Complete API collection for Fieldcraft - Intelligence-driven campaign generation system\n\n**Features:**\n- User authentication with JWT\n- Multi-tenant workspaces with UUID support\n- Campaign management\n- Signal collection from 7 platforms (Google, YouTube, Meta, LinkedIn, TikTok, Reddit, Pinterest)\n- AI-powered signal analysis with Claude/GPT\n- Strategic Brief Generation (NEW) - 2-page comprehensive marketing strategy documents\n- Audience Insights (NEW) - Deep audience profiling and intelligence\n\n**Setup:**\n1. Import this collection\n2. Create environment with variables: `base_url`, `email`, `password`\n3. Run \"Login\" request to get auth token\n4. Token is automatically saved and used in subsequent requests\n\n**Recommended Workflow:**\n1. Register/Login\n2. Create Campaign\n3. Collect Signals\n4. Run Signal Analysis\n5. Get Audience Insights (NEW)\n6. Generate Strategic Brief (NEW)\n7. Review and export deliverables",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"auth": {
-		"type": "bearer",
-		"bearer": [
-			{
-				"key": "token",
-				"value": "{{access_token}}",
-				"type": "string"
-			}
-		]
-	},
-	"item": [
-		{
-			"name": "Authentication",
-			"item": [
-				{
-					"name": "Register User",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    const response = pm.response.json();",
-									"    pm.collectionVariables.set(\"user_id\", response.id);",
-									"    pm.collectionVariables.set(\"workspace_id\", response.workspace_id);",
-									"    console.log(\"User registered successfully. ID:\", response.id);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\",\n    \"workspace_name\": \"My Workspace\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/auth/register",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "auth", "register"]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Login",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 200) {",
-									"    const response = pm.response.json();",
-									"    pm.collectionVariables.set(\"access_token\", response.access_token);",
-									"    console.log(\"Login successful. Token saved.\");",
-									"    ",
-									"    // Test token is valid",
-									"    pm.test(\"Access token is present\", function () {",
-									"        pm.expect(response.access_token).to.be.a('string');",
-									"        pm.expect(response.access_token.length).to.be.above(20);",
-									"    });",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "urlencoded",
-							"urlencoded": [
-								{
-									"key": "username",
-									"value": "{{email}}",
-									"type": "text"
-								},
-								{
-									"key": "password",
-									"value": "{{password}}",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/auth/login",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "auth", "login"]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Current User",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/auth/me",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "auth", "me"]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Workspaces",
-			"item": [
-				{
-					"name": "List Workspaces",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/workspaces",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "workspaces"]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Workspace",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/workspaces/{{workspace_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "workspaces", "{{workspace_id}}"]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Campaigns",
-			"item": [
-				{
-					"name": "Create Campaign",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    const response = pm.response.json();",
-									"    pm.collectionVariables.set(\"campaign_id\", response.id);",
-									"    console.log(\"Campaign created. ID:\", response.id);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"Marketing Automation Campaign\",\n    \"brief\": {\n        \"goal\": \"increase brand awareness\",\n        \"audiences\": [\"B2B marketers\", \"startup founders\", \"growth teams\"],\n        \"offer\": \"marketing automation\",\n        \"competitors\": [\"HubSpot\", \"Marketo\", \"Pardot\"],\n        \"channels\": [\"linkedin\", \"google\", \"youtube\"],\n        \"budget_band\": \"$10k-50k/month\",\n        \"voice_constraints\": \"professional yet approachable, data-driven\"\n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns"]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "List Campaigns",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns"]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Campaign",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}"]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Campaign",
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"Updated Campaign Name\",\n    \"status\": \"analyzing\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}"]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Campaign",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}"]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Signals",
-			"item": [
-				{
-					"name": "Collect Signals - All Cartridges",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"max_queries_per_cartridge\": 3\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/signals/collect",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "signals", "collect"]
-						},
-						"description": "Collect signals using all available cartridges"
-					},
-					"response": []
-				},
-				{
-					"name": "Collect Signals - Specific Cartridges",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"cartridge_names\": [\"google_serp\", \"youtube\", \"meta_ads\"],\n    \"max_queries_per_cartridge\": 5\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/signals/collect",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "signals", "collect"]
-						},
-						"description": "Collect signals from specific cartridges only"
-					},
-					"response": []
-				},
-				{
-					"name": "List Campaign Signals",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/signals?limit=20",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "signals"],
-							"query": [
-								{
-									"key": "limit",
-									"value": "20"
-								},
-								{
-									"key": "min_relevance",
-									"value": "0.5",
-									"disabled": true
-								},
-								{
-									"key": "source",
-									"value": "google",
-									"disabled": true
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Signal",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/signals/1",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "signals", "1"]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "AI Analysis",
-			"item": [
-				{
-					"name": "Analyze - Comprehensive (Claude)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 200) {",
-									"    const response = pm.response.json();",
-									"    pm.collectionVariables.set(\"analysis_id\", response.id);",
-									"    console.log(\"Analysis ID:\", response.id);",
-									"    ",
-									"    pm.test(\"Analysis completed\", function () {",
-									"        pm.expect(response.status).to.be.oneOf([\"completed\", \"pending\", \"in_progress\"]);",
-									"    });",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"analysis_type\": \"comprehensive\",\n    \"llm_provider\": \"claude\",\n    \"max_signals\": 50,\n    \"min_relevance\": 0.3,\n    \"async_mode\": false\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/analyze",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "analyze"]
-						},
-						"description": "Run comprehensive AI analysis using Claude"
-					},
-	 				"response": []
-				},
-				{
-					"name": "Analyze - Competitor Analysis",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"analysis_type\": \"competitor\",\n    \"llm_provider\": \"claude\",\n    \"max_signals\": 30,\n    \"async_mode\": false\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/analyze",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "analyze"]
-						},
-						"description": "Analyze competitor strategies"
-					},
-					"response": []
-				},
-				{
-					"name": "Analyze - Audience Insights",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"analysis_type\": \"audience\",\n    \"llm_provider\": \"claude\",\n    \"max_signals\": 40,\n    \"async_mode\": false\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/analyze",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "analyze"]
-						},
-						"description": "Extract audience insights and pain points"
-					},
-					"response": []
-				},
-				{
-					"name": "Analyze - Async Mode",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"analysis_type\": \"comprehensive\",\n    \"llm_provider\": \"claude\",\n    \"async_mode\": true\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/analyze",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "analyze"]
-						},
-						"description": "Run analysis in background (returns immediately)"
-					},
-					"response": []
-				},
-				{
-					"name": "List Campaign Analyses",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/signal-analyses?limit=10",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "signal-analyses"],
-							"query": [
-								{
-									"key": "limit",
-									"value": "10"
-								},
-								{
-									"key": "analysis_type",
-									"value": "comprehensive",
-									"disabled": true
-								},
-								{
-									"key": "status_filter",
-									"value": "completed",
-									"disabled": true
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Analysis",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/signal-analyses/{{analysis_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "signal-analyses", "{{analysis_id}}"]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Analysis",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/signal-analyses/{{analysis_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "signal-analyses", "{{analysis_id}}"]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Strategic Brief",
-			"item": [
-				{
-					"name": "Generate Strategic Brief",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 200) {",
-									"    const response = pm.response.json();",
-									"    pm.collectionVariables.set(\"brief_id\", response.id);",
-									"    console.log(\"Strategic Brief ID:\", response.id);",
-									"    ",
-									"    pm.test(\"Brief generated\", function () {",
-									"        pm.expect(response.status).to.be.oneOf([\"completed\", \"pending\", \"failed\"]);",
-									"    });",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"llm_provider\": \"claude\",\n    \"async_mode\": false\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/strategic-brief",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "strategic-brief"]
-						},
-						"description": "Generate a comprehensive 2-page strategic brief from campaign data and signal analysis"
-					},
-					"response": []
-				},
-				{
-					"name": "Generate Brief - With Custom Instructions",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"llm_provider\": \"claude\",\n    \"custom_instructions\": \"Focus on B2B SaaS positioning and enterprise sales\",\n    \"async_mode\": false\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/strategic-brief",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "strategic-brief"]
-						},
-						"description": "Generate strategic brief with custom instructions"
-					},
-					"response": []
-				},
-				{
-					"name": "Generate Brief - Async Mode",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"llm_provider\": \"claude\",\n    \"async_mode\": true\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/strategic-brief",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "strategic-brief"]
-						},
-						"description": "Generate strategic brief in background (returns immediately)"
-					},
-					"response": []
-				},
-				{
-					"name": "List Campaign Briefs",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/strategic-briefs?limit=10",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "strategic-briefs"],
-							"query": [
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						},
-						"description": "List all strategic briefs for a campaign"
-					},
-					"response": []
-				},
-				{
-					"name": "Get Strategic Brief",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/strategic-briefs/{{brief_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "strategic-briefs", "{{brief_id}}"]
-						},
-						"description": "Get a specific strategic brief by ID"
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Strategic Brief",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/strategic-briefs/{{brief_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "strategic-briefs", "{{brief_id}}"]
-						},
-						"description": "Delete a strategic brief"
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Audience Insights",
-			"item": [
-				{
-					"name": "Get Audience Insights",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"llm_provider\": \"claude\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/audience-insights",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "audience-insights"]
-						},
-						"description": "Generate detailed audience intelligence including demographics, pain points, motivations, objections, and media habits"
-					},
-					"response": []
-				},
-				{
-					"name": "Get Audience Insights - Focused",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"llm_provider\": \"claude\",\n    \"focus_areas\": [\"pain_points\", \"motivations\", \"objections\"]\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/audience-insights",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "campaigns", "{{campaign_id}}", "audience-insights"]
-						},
-						"description": "Get audience insights focused on specific areas"
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "System",
-			"item": [
-				{
-					"name": "Health Check",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/health",
-							"host": ["{{base_url}}"],
-							"path": ["health"]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "API Root",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/",
-							"host": ["{{base_url}}"],
-							"path": [""]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "API Documentation",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/docs",
-							"host": ["{{base_url}}"],
-							"path": ["docs"]
-						}
-					},
-					"response": []
-				}
-			]
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					"// Auto-refresh token if needed (placeholder for future enhancement)",
-					"console.log(\"Request to:\", pm.request.url.toString());"
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					"// Global test - check response time",
-					"pm.test(\"Response time is less than 10s\", function () {",
-					"    pm.expect(pm.response.responseTime).to.be.below(10000);",
-					"});"
-				]
-			}
-		}
-	],
-	"variable": [
-		{
-			"key": "base_url",
-			"value": "http://localhost:8000",
-			"type": "string"
-		},
-		{
-			"key": "email",
-			"value": "test@example.com",
-			"type": "string"
-		},
-		{
-			"key": "password",
-			"value": "testpassword123",
-			"type": "string"
-		},
-		{
-			"key": "access_token",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "user_id",
-			"value": "",
-			"type": "string",
-			"description": "Integer ID for user"
-		},
-		{
-			"key": "workspace_id",
-			"value": "",
-			"type": "string",
-			"description": "UUID for workspace (auto-saved from Register)"
-		},
-		{
-			"key": "campaign_id",
-			"value": "",
-			"type": "string",
-			"description": "UUID for campaign (auto-saved from Create Campaign)"
-		},
-		{
-			"key": "analysis_id",
-			"value": "",
-			"type": "string",
-			"description": "UUID for signal analysis (auto-saved from Analyze)"
-		},
-		{
-			"key": "brief_id",
-			"value": "",
-			"type": "string",
-			"description": "UUID for strategic brief (auto-saved from Generate Brief)"
-		}
-	]
+  "info": {
+    "_postman_id": "fieldcraft-api-v1",
+    "name": "Fieldcraft API - Complete Collection",
+    "description": "Complete API collection for Fieldcraft - Intelligence-driven campaign generation system\n\n**Features:**\n- API key authentication with workspace scoping\n- Multi-tenant workspaces with UUID support\n- Campaign management\n- Signal collection from 7 platforms (Google, YouTube, Meta, LinkedIn, TikTok, Reddit, Pinterest)\n- AI-powered signal analysis with Claude/GPT\n- Strategic Brief Generation (NEW) - 2-page comprehensive marketing strategy documents\n- Audience Insights (NEW) - Deep audience profiling and intelligence\n\n**Setup:**\n1. Import this collection\n2. Create environment with variables: `base_url`, `email`\n3. Run \"Register User\" to bootstrap an account and capture the API key\n4. The issued API key is saved to collection variables for subsequent requests\n\n**Recommended Workflow:**\n1. Register account\n2. Review generated API key(s)\n3. Create Campaign\n4. Collect Signals\n5. Run Signal Analysis\n6. Generate Strategic Brief\n7. Review and export deliverables",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-API-Key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{api_key}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set(\"user_id\", response.user.id);",
+                  "    pm.collectionVariables.set(\"workspace_id\", response.workspace.id);",
+                  "    pm.collectionVariables.set(\"api_key\", response.api_key);",
+                  "    pm.collectionVariables.set(\"api_key_id\", response.key.id);",
+                  "    console.log(\"User registered. API key issued:\", response.api_key);",
+                  "",
+                  "    pm.test(\"API key secret returned\", function () {",
+                  "        pm.expect(response.api_key).to.be.a('string');",
+                  "        pm.expect(response.api_key.length).to.be.above(20);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{email}}\",\n    \"workspace_name\": \"My Workspace\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List API Keys",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const items = pm.response.json();",
+                  "    pm.test(\"At least one API key returned\", function () {",
+                  "        pm.expect(items.length).to.be.at.least(1);",
+                  "    });",
+                  "    if (items.length) {",
+                  "        pm.collectionVariables.set(\"api_key_id\", items[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/api-keys",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "api-keys"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create API Key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set(\"last_created_api_key\", response.api_key);",
+                  "    pm.collectionVariables.set(\"last_created_api_key_id\", response.key.id);",
+                  "    console.log(\"Additional API key created:\", response.key.id);",
+                  "",
+                  "    pm.test(\"API key secret created\", function () {",
+                  "        pm.expect(response.api_key).to.be.a('string');",
+                  "        pm.expect(response.api_key.length).to.be.above(20);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Automation Runner\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/api-keys",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "api-keys"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke Last API Key",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const keyId = pm.collectionVariables.get(\"last_created_api_key_id\");",
+                  "if (!keyId) {",
+                  "    console.warn(\"No last_created_api_key_id set. Run 'Create API Key' first.\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 204) {",
+                  "    pm.collectionVariables.unset(\"last_created_api_key\");",
+                  "    pm.collectionVariables.unset(\"last_created_api_key_id\");",
+                  "    console.log(\"API key revoked successfully.\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/api-keys/{{last_created_api_key_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "api-keys",
+                "{{last_created_api_key_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test(\"Returned user matches registered user\", function () {",
+                  "        pm.expect(String(response.id)).to.eql(String(pm.collectionVariables.get(\"user_id\")));",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Workspaces",
+      "item": [
+        {
+          "name": "List Workspaces",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/workspaces",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "workspaces"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Workspace",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/workspaces/{{workspace_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "workspaces",
+                "{{workspace_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Campaigns",
+      "item": [
+        {
+          "name": "Create Campaign",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set(\"campaign_id\", response.id);",
+                  "    console.log(\"Campaign created. ID:\", response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Marketing Automation Campaign\",\n    \"brief\": {\n        \"goal\": \"increase brand awareness\",\n        \"audiences\": [\"B2B marketers\", \"startup founders\", \"growth teams\"],\n        \"offer\": \"marketing automation\",\n        \"competitors\": [\"HubSpot\", \"Marketo\", \"Pardot\"],\n        \"channels\": [\"linkedin\", \"google\", \"youtube\"],\n        \"budget_band\": \"$10k-50k/month\",\n        \"voice_constraints\": \"professional yet approachable, data-driven\"\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Campaigns",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Campaign",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Campaign",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Campaign Name\",\n    \"status\": \"analyzing\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Campaign",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Campaign Blueprint",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const blueprint = pm.response.json();",
+                  "    pm.test('Blueprint includes draft assets', function () {",
+                  "        pm.expect(blueprint.draft_assets).to.be.an('array');",
+                  "    });",
+                  "    if (blueprint.artifact_id) {",
+                  "        pm.collectionVariables.set('blueprint_id', blueprint.artifact_id);",
+                  "        console.log('Stored blueprint_id', blueprint.artifact_id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/blueprint?persist=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "blueprint"
+              ],
+              "query": [
+                {
+                  "key": "persist",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Campaign Blueprints",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/blueprints",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "blueprints"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const items = pm.response.json();",
+                  "    pm.test('Blueprint list returns array', function () {",
+                  "        pm.expect(items).to.be.an('array');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get Campaign Blueprint",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/blueprints/{{blueprint_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "blueprints",
+                "{{blueprint_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const blueprintId = pm.collectionVariables.get('blueprint_id');",
+                  "if (!blueprintId) {",
+                  "    console.warn('No blueprint_id set. Run Generate Campaign Blueprint first.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const blueprint = pm.response.json();",
+                  "    pm.test('Blueprint has insights summary', function () {",
+                  "        pm.expect(blueprint.insights).to.be.an('object');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Signals",
+      "item": [
+        {
+          "name": "Collect Signals - All Cartridges",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"max_queries_per_cartridge\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/signals/collect",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "signals",
+                "collect"
+              ]
+            },
+            "description": "Collect signals using all available cartridges"
+          },
+          "response": []
+        },
+        {
+          "name": "Collect Signals - Specific Cartridges",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"cartridge_names\": [\"google_serp\", \"youtube\", \"meta_ads\"],\n    \"max_queries_per_cartridge\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/signals/collect",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "signals",
+                "collect"
+              ]
+            },
+            "description": "Collect signals from specific cartridges only"
+          },
+          "response": []
+        },
+        {
+          "name": "List Campaign Signals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/signals?limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "signals"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "min_relevance",
+                  "value": "0.5",
+                  "disabled": true
+                },
+                {
+                  "key": "source",
+                  "value": "google",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const signals = pm.response.json();",
+                  "    pm.test('Signals returned array', function () {",
+                  "        pm.expect(signals).to.be.an('array');",
+                  "    });",
+                  "    if (signals.length) {",
+                  "        pm.collectionVariables.set('signal_id', signals[0].id);",
+                  "        console.log('Stored signal_id', signals[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enrich Signals",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const summary = pm.response.json();",
+                  "    pm.test('Enrichment summary has processed count', function () {",
+                  "        pm.expect(summary.processed).to.be.at.least(0);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/signals/enrich",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "signals",
+                "enrich"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Signal Enrichments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/signals/{{signal_id}}/enrichments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "signals",
+                "{{signal_id}}",
+                "enrichments"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI Analysis",
+      "item": [
+        {
+          "name": "Analyze - Comprehensive (Claude)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set(\"analysis_id\", response.id);",
+                  "    console.log(\"Analysis ID:\", response.id);",
+                  "    ",
+                  "    pm.test(\"Analysis completed\", function () {",
+                  "        pm.expect(response.status).to.be.oneOf([\"completed\", \"pending\", \"in_progress\"]);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"analysis_type\": \"comprehensive\",\n    \"llm_provider\": \"claude\",\n    \"max_signals\": 50,\n    \"min_relevance\": 0.3,\n    \"async_mode\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/analyze",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "analyze"
+              ]
+            },
+            "description": "Run comprehensive AI analysis using Claude"
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze - Competitor Analysis",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"analysis_type\": \"competitor\",\n    \"llm_provider\": \"claude\",\n    \"max_signals\": 30,\n    \"async_mode\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/analyze",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "analyze"
+              ]
+            },
+            "description": "Analyze competitor strategies"
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze - Audience Insights",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"analysis_type\": \"audience\",\n    \"llm_provider\": \"claude\",\n    \"max_signals\": 40,\n    \"async_mode\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/analyze",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "analyze"
+              ]
+            },
+            "description": "Extract audience insights and pain points"
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze - Async Mode",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"analysis_type\": \"comprehensive\",\n    \"llm_provider\": \"claude\",\n    \"async_mode\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/analyze",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "analyze"
+              ]
+            },
+            "description": "Run analysis in background (returns immediately)"
+          },
+          "response": []
+        },
+        {
+          "name": "List Campaign Analyses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/signal-analyses?limit=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "signal-analyses"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "analysis_type",
+                  "value": "comprehensive",
+                  "disabled": true
+                },
+                {
+                  "key": "status_filter",
+                  "value": "completed",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Analysis",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/signal-analyses/{{analysis_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "signal-analyses",
+                "{{analysis_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Analysis",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/signal-analyses/{{analysis_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "signal-analyses",
+                "{{analysis_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Strategic Brief",
+      "item": [
+        {
+          "name": "Generate Strategic Brief",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set(\"brief_id\", response.id);",
+                  "    console.log(\"Strategic Brief ID:\", response.id);",
+                  "    ",
+                  "    pm.test(\"Brief generated\", function () {",
+                  "        pm.expect(response.status).to.be.oneOf([\"completed\", \"pending\", \"failed\"]);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"llm_provider\": \"claude\",\n    \"async_mode\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/strategic-brief",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "strategic-brief"
+              ]
+            },
+            "description": "Generate a comprehensive 2-page strategic brief from campaign data and signal analysis"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Brief - With Custom Instructions",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"llm_provider\": \"claude\",\n    \"custom_instructions\": \"Focus on B2B SaaS positioning and enterprise sales\",\n    \"async_mode\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/strategic-brief",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "strategic-brief"
+              ]
+            },
+            "description": "Generate strategic brief with custom instructions"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Brief - Async Mode",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"llm_provider\": \"claude\",\n    \"async_mode\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/strategic-brief",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "strategic-brief"
+              ]
+            },
+            "description": "Generate strategic brief in background (returns immediately)"
+          },
+          "response": []
+        },
+        {
+          "name": "List Campaign Briefs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/strategic-briefs?limit=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "strategic-briefs"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "List all strategic briefs for a campaign"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Strategic Brief",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/strategic-briefs/{{brief_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "strategic-briefs",
+                "{{brief_id}}"
+              ]
+            },
+            "description": "Get a specific strategic brief by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Strategic Brief",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/strategic-briefs/{{brief_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "strategic-briefs",
+                "{{brief_id}}"
+              ]
+            },
+            "description": "Delete a strategic brief"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Audience Insights",
+      "item": [
+        {
+          "name": "Get Audience Insights",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"llm_provider\": \"claude\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/audience-insights",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "audience-insights"
+              ]
+            },
+            "description": "Generate detailed audience intelligence including demographics, pain points, motivations, objections, and media habits"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Audience Insights - Focused",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"llm_provider\": \"claude\",\n    \"focus_areas\": [\"pain_points\", \"motivations\", \"objections\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/audience-insights",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "audience-insights"
+              ]
+            },
+            "description": "Get audience insights focused on specific areas"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API Root",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API Documentation",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/docs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "docs"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Exports",
+      "item": [
+        {
+          "name": "Generate Export Payload",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const payload = pm.response.json();",
+                  "    pm.test('Export payload contains platform', function () {",
+                  "        pm.expect(payload.platform).to.be.a('string');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/exports/meta",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "campaigns",
+                "{{campaign_id}}",
+                "exports",
+                "meta"
+              ],
+              "query": [
+                {
+                  "key": "dry_run",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Observability",
+      "item": [
+        {
+          "name": "List Observability Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/observability/events?limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "observability",
+                "events"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request hook (logging only)",
+          "console.log(\"Request to:\", pm.request.url.toString());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test - check response time",
+          "pm.test(\"Response time is less than 10s\", function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(10000);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "test@example.com",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "",
+      "type": "string",
+      "description": "Plain API key issued during registration"
+    },
+    {
+      "key": "api_key_id",
+      "value": "",
+      "type": "string",
+      "description": "Identifier for the primary API key"
+    },
+    {
+      "key": "last_created_api_key",
+      "value": "",
+      "type": "string",
+      "description": "Stores the most recently created API key secret"
+    },
+    {
+      "key": "last_created_api_key_id",
+      "value": "",
+      "type": "string",
+      "description": "Identifier for most recently created API key"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string",
+      "description": "Integer ID for user"
+    },
+    {
+      "key": "workspace_id",
+      "value": "",
+      "type": "string",
+      "description": "UUID for workspace (auto-saved from Register)"
+    },
+    {
+      "key": "campaign_id",
+      "value": "",
+      "type": "string",
+      "description": "UUID for campaign (auto-saved from Create Campaign)"
+    },
+    {
+      "key": "analysis_id",
+      "value": "",
+      "type": "string",
+      "description": "UUID for signal analysis (auto-saved from Analyze)"
+    },
+    {
+      "key": "brief_id",
+      "value": "",
+      "type": "string",
+      "description": "UUID for strategic brief (auto-saved from Generate Brief)"
+    },
+    {
+      "key": "signal_id",
+      "value": "",
+      "type": "string",
+      "description": "UUID for most recent signal"
+    },
+    {
+      "key": "blueprint_id",
+      "value": "",
+      "type": "string",
+      "description": "UUID of last generated campaign blueprint"
+    }
+  ]
 }

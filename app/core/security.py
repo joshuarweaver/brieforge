@@ -1,54 +1,66 @@
-"""Security utilities for authentication and authorization."""
-from datetime import datetime, timedelta
-from typing import Optional
+"""Security utilities for API key authentication."""
+import secrets
+import uuid
+from typing import Tuple
 
-from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
 
-# Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a plain password against a hashed password."""
-    return pwd_context.verify(plain_password, hashed_password)
+def hash_secret(secret: str) -> str:
+    """Hash a secret string."""
+    return pwd_context.hash(secret)
 
 
-def get_password_hash(password: str) -> str:
-    """Hash a password."""
-    return pwd_context.hash(password)
+def verify_secret(plain_secret: str, hashed_secret: str) -> bool:
+    """Verify a secret string against its hashed value."""
+    return pwd_context.verify(plain_secret, hashed_secret)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """Create a JWT access token."""
-    to_encode = data.copy()
+def generate_api_key() -> Tuple[uuid.UUID, str, str]:
+    """Generate a new API key and return (key_id, plain_key, hashed_secret)."""
+    key_id = uuid.uuid4()
+    secret = secrets.token_urlsafe(32)
+    prefix = settings.API_KEY_PREFIX.rstrip(".")
+    api_key = f"{prefix}.{key_id.hex}.{secret}" if prefix else f"{key_id.hex}.{secret}"
+    hashed_secret = hash_secret(secret)
+    return key_id, api_key, hashed_secret
 
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+
+def split_api_key(api_key: str) -> Tuple[uuid.UUID, str]:
+    """Split the API key into its identifier and secret components."""
+    if not api_key:
+        raise ValueError("Empty API key")
+
+    parts = api_key.split(".")
+    if len(parts) < 2:
+        raise ValueError("Malformed API key")
+
+    # Handle optional prefix: prefix.id.secret or id.secret
+    expected_prefix = settings.API_KEY_PREFIX.rstrip(".")
+
+    if len(parts) == 3:
+        prefix, key_id_hex, secret = parts
+        if expected_prefix and prefix != expected_prefix:
+            raise ValueError("Invalid API key prefix")
+        if not expected_prefix and prefix:
+            raise ValueError("Unexpected API key prefix")
+    elif len(parts) == 2:
+        key_id_hex, secret = parts
+        if expected_prefix:
+            raise ValueError("Missing API key prefix")
     else:
-        expire = datetime.utcnow() + timedelta(
-            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-        )
+        raise ValueError("Malformed API key")
 
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(
-        to_encode,
-        settings.SECRET_KEY,
-        algorithm=settings.ALGORITHM
-    )
-    return encoded_jwt
-
-
-def decode_access_token(token: str) -> Optional[dict]:
-    """Decode and verify a JWT access token."""
     try:
-        payload = jwt.decode(
-            token,
-            settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM]
-        )
-        return payload
-    except JWTError:
-        return None
+        key_id = uuid.UUID(hex=key_id_hex)
+    except ValueError as exc:
+        raise ValueError("Invalid API key identifier") from exc
+
+    if not secret:
+        raise ValueError("Missing API key secret")
+
+    return key_id, secret

@@ -1,23 +1,31 @@
-"""Authentication endpoints."""
-from datetime import timedelta
+"""Authentication endpoints using API keys."""
+from datetime import datetime
+from typing import List
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import get_password_hash, verify_password, create_access_token
-from app.core.config import settings
+from app.core.security import generate_api_key
 from app.api.deps import get_current_user
-from app.models import User, Workspace
-from app.schemas import UserCreate, UserLogin, TokenResponse, UserResponse
+from app.models import User, Workspace, APIKey
+from app.schemas import (
+    UserCreate,
+    UserResponse,
+    WorkspaceResponse,
+    APIKeyCreate,
+    APIKeyMetadata,
+    APIKeyWithSecretResponse,
+    RegistrationResponse,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=TokenResponse)
+@router.post("/register", response_model=RegistrationResponse, status_code=status.HTTP_201_CREATED)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
-    """Register a new user and create their workspace."""
-    # Check if user exists
+    """Register a new user and issue their first API key."""
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
         raise HTTPException(
@@ -25,62 +33,44 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
             detail="Email already registered",
         )
 
-    # Create user (without workspace first)
-    hashed_password = get_password_hash(user_data.password)
     new_user = User(
         email=user_data.email,
-        hashed_password=hashed_password,
-        role="admin"  # First user is admin of their workspace
+        hashed_password=None,
+        role="admin",
     )
     db.add(new_user)
-    db.flush()  # Get user ID without committing
+    db.flush()
 
-    # Create workspace owned by this user
+    workspace_name = user_data.workspace_name or f"{user_data.email.split('@')[0]}'s Workspace"
     workspace = Workspace(
-        name=f"{user_data.email.split('@')[0]}'s Workspace",
+        name=workspace_name,
         owner_id=new_user.id,
         settings={}
     )
     db.add(workspace)
     db.flush()
 
-    # Assign user to workspace
     new_user.workspace_id = workspace.id
+
+    key_id, plain_api_key, hashed_secret = generate_api_key()
+    api_key_record = APIKey(
+        id=key_id,
+        name="Default key",
+        hashed_key=hashed_secret,
+        user_id=new_user.id,
+    )
+    db.add(api_key_record)
+
     db.commit()
     db.refresh(new_user)
+    db.refresh(workspace)
+    db.refresh(api_key_record)
 
-    # Create access token
-    access_token = create_access_token(
-        data={"sub": str(new_user.id)},
-        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
-
-    return TokenResponse(
-        access_token=access_token,
-        user=UserResponse.model_validate(new_user)
-    )
-
-
-@router.post("/login", response_model=TokenResponse)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    """Login user with OAuth2 password flow."""
-    user = db.query(User).filter(User.email == form_data.username).first()
-
-    if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-        )
-
-    # Create access token
-    access_token = create_access_token(
-        data={"sub": str(user.id)},
-        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
-
-    return TokenResponse(
-        access_token=access_token,
-        user=UserResponse.model_validate(user)
+    return RegistrationResponse(
+        api_key=plain_api_key,
+        key=APIKeyMetadata.model_validate(api_key_record),
+        user=UserResponse.model_validate(new_user),
+        workspace=WorkspaceResponse.model_validate(workspace),
     )
 
 
@@ -90,17 +80,62 @@ def get_current_user_info(current_user: User = Depends(get_current_user)):
     return UserResponse.model_validate(current_user)
 
 
-@router.post("/refresh", response_model=TokenResponse)
-def refresh_token(current_user: User = Depends(get_current_user)):
-    """Refresh access token."""
-    # For now, just return a new token
-    # In production, you'd want separate refresh token logic
-    access_token = create_access_token(
-        data={"sub": str(current_user.id)},
-        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+@router.get("/api-keys", response_model=List[APIKeyMetadata])
+def list_api_keys(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """List active API keys for the current user."""
+    keys = (
+        db.query(APIKey)
+        .filter(APIKey.user_id == current_user.id, APIKey.revoked_at.is_(None))
+        .order_by(APIKey.created_at.asc())
+        .all()
+    )
+    return [APIKeyMetadata.model_validate(key) for key in keys]
+
+
+@router.post("/api-keys", response_model=APIKeyWithSecretResponse, status_code=status.HTTP_201_CREATED)
+def create_api_key(
+    payload: APIKeyCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Create an additional API key for the authenticated user."""
+    key_name = payload.name or f"Key created at {datetime.utcnow().isoformat(timespec='seconds')}Z"
+    key_id, plain_api_key, hashed_secret = generate_api_key()
+    api_key_record = APIKey(
+        id=key_id,
+        name=key_name,
+        hashed_key=hashed_secret,
+        user_id=current_user.id,
+    )
+    db.add(api_key_record)
+    db.commit()
+    db.refresh(api_key_record)
+
+    return APIKeyWithSecretResponse(
+        api_key=plain_api_key,
+        key=APIKeyMetadata.model_validate(api_key_record),
     )
 
-    return TokenResponse(
-        access_token=access_token,
-        user=UserResponse.model_validate(current_user)
+
+@router.delete("/api-keys/{key_id}", status_code=status.HTTP_204_NO_CONTENT)
+def revoke_api_key(
+    key_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Revoke an API key."""
+    api_key = (
+        db.query(APIKey)
+        .filter(APIKey.id == key_id, APIKey.user_id == current_user.id)
+        .first()
     )
+
+    if api_key is None or api_key.revoked_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="API key not found",
+        )
+
+    api_key.revoked_at = datetime.utcnow()
+    db.add(api_key)
+    db.commit()

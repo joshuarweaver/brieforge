@@ -1,6 +1,6 @@
 """Signal orchestrator for running multiple cartridges and storing results."""
 import asyncio
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional, Union, Set
 from datetime import datetime
 from uuid import UUID
 from sqlalchemy.orm import Session
@@ -9,6 +9,8 @@ from app.services.searchapi import get_searchapi_client
 from app.services.signals.base import SignalCartridge, SignalResult, CartridgeRegistry
 from app.models.signal import Signal
 from app.models.campaign import Campaign
+from app.services.observability import ObservabilityService
+from app.services.compliance import ComplianceService
 
 # Import all cartridges to register them
 from app.services.signals.google_serp import GoogleSERPCartridge
@@ -31,15 +33,21 @@ class SignalOrchestrator:
     - Progress tracking
     """
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, observability: Optional[ObservabilityService] = None):
         self.db = db
         self.searchapi = get_searchapi_client()
+        self.observability = observability or ObservabilityService(db)
+        self.compliance = ComplianceService(db)
+        self._seen_urls: Set[str] = set()
 
     async def collect_signals(
         self,
         campaign_id: int,
         cartridge_names: Optional[List[str]] = None,
-        max_queries_per_cartridge: int = 10
+        max_queries_per_cartridge: int = 10,
+        *,
+        user_id: int,
+        workspace_id,
     ) -> Dict[str, Any]:
         """
         Collect signals for a campaign using specified cartridges.
@@ -58,6 +66,15 @@ class SignalOrchestrator:
             raise ValueError(f"Campaign {campaign_id} not found")
 
         brief = campaign.brief
+
+        self.compliance.ensure_allowed(
+            workspace_id=workspace_id,
+            event_type="signals.collect",
+            context={"campaign_id": str(campaign_id), "cartridges": cartridge_names},
+        )
+
+        # Reset deduplication cache per collection run
+        self._seen_urls.clear()
 
         # Determine which cartridges to use
         if cartridge_names is None:
@@ -91,13 +108,24 @@ class SignalOrchestrator:
                     "error": str(e)
                 })
 
-        return {
+        summary = {
             "campaign_id": campaign_id,
             "cartridges_run": len(cartridges_to_use),
             "total_signals": total_signals,
             "errors": errors,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
+            "deduplicated_urls": len(self._seen_urls),
         }
+
+        self.observability.log_event(
+            workspace_id=workspace_id,
+            user_id=user_id,
+            event_type="signals.collected",
+            source="signal_orchestrator",
+            details=summary,
+        )
+
+        return summary
 
     async def _run_cartridge(
         self,
@@ -131,8 +159,19 @@ class SignalOrchestrator:
                 # Extract evidence
                 evidence_list = cartridge.extract_evidence(raw_results, query)
 
-                # Compute relevance scores
+                deduped = []
                 for evidence in evidence_list:
+                    url_key = evidence.url.strip().lower()
+                    if url_key in self._seen_urls:
+                        continue
+                    self._seen_urls.add(url_key)
+                    deduped.append(evidence)
+
+                if not deduped:
+                    continue
+
+                # Compute relevance scores
+                for evidence in deduped:
                     evidence.relevance_score = cartridge.compute_relevance(evidence, brief)
 
                 # Store as signal in database
@@ -141,8 +180,15 @@ class SignalOrchestrator:
                     source=cartridge.platform,
                     search_method=cartridge.name,
                     query=query,
-                    evidence=[e.to_dict() for e in evidence_list],
-                    relevance_score=sum(e.relevance_score for e in evidence_list) / len(evidence_list) if evidence_list else 0.0,
+                    evidence=[e.to_dict() for e in deduped],
+                    relevance_score=sum(e.relevance_score for e in deduped) / len(deduped) if deduped else 0.0,
+                    provenance={
+                        "cartridge": cartridge.name,
+                        "query": query,
+                        "platform": cartridge.platform,
+                        "collected_at": datetime.utcnow().isoformat(),
+                        "evidence_count": len(deduped),
+                    },
                     created_at=datetime.utcnow()
                 )
 

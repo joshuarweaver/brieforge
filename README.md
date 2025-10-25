@@ -6,7 +6,10 @@ Intelligence-driven campaign generation system powered by public signal intellig
 
 - **Framework**: FastAPI
 - **Database**: PostgreSQL with SQLAlchemy
-- **Authentication**: JWT with bcrypt
+- **Authentication**: API keys with bcrypt-hashed secrets
+- **Signals**: Multi-platform search orchestration with deduped evidence
+- **Insights**: Signal enrichment, automated blueprinting, export adapters
+- **Observability**: Audit logging and compliance hooks
 - **LLMs**: Anthropic Claude Sonnet 4.5, OpenAI GPT-4o-mini
 - **APIs**: SerpAPI (for omnisearch across platforms)
 
@@ -71,13 +74,13 @@ backend/
 │   ├── api/
 │   │   ├── deps.py              # Dependencies (auth, db)
 │   │   └── v1/
-│   │       ├── auth.py          # Auth endpoints
+│   │       ├── auth.py          # API key auth + account management
 │   │       ├── campaigns.py     # Campaign CRUD
 │   │       └── workspaces.py    # Workspace CRUD
 │   ├── core/
 │   │   ├── config.py            # Settings
 │   │   ├── database.py          # DB connection
-│   │   └── security.py          # JWT, password hashing
+│   │   └── security.py          # API key utilities
 │   ├── models/
 │   │   ├── user.py              # User, Workspace
 │   │   ├── campaign.py          # Campaign
@@ -95,9 +98,11 @@ backend/
 ## API Endpoints
 
 ### Authentication
-- `POST /api/v1/auth/register` - Register new user + create workspace
-- `POST /api/v1/auth/login` - Login and get JWT token
-- `POST /api/v1/auth/refresh` - Refresh JWT token
+- `POST /api/v1/auth/register` - Register new user, create workspace, and issue API key
+- `GET /api/v1/auth/me` - Get current user details
+- `GET /api/v1/auth/api-keys` - List active API keys
+- `POST /api/v1/auth/api-keys` - Create additional API key
+- `DELETE /api/v1/auth/api-keys/{id}` - Revoke API key
 
 ### Workspaces
 - `GET /api/v1/workspaces` - List user's workspaces
@@ -112,6 +117,21 @@ backend/
 - `GET /api/v1/campaigns/{id}` - Get campaign
 - `PATCH /api/v1/campaigns/{id}` - Update campaign
 - `DELETE /api/v1/campaigns/{id}` - Delete campaign
+- `POST /api/v1/campaigns/{id}/blueprint` - Generate campaign blueprint from signals (optional persistence)
+- `GET /api/v1/campaigns/{id}/blueprints` - List stored blueprint artifacts
+- `GET /api/v1/campaigns/{id}/blueprints/{blueprint_id}` - Retrieve a specific blueprint artifact
+
+### Signals
+- `POST /api/v1/campaigns/{id}/signals/collect` - Collect multi-source signals with deduplication
+- `POST /api/v1/campaigns/{id}/signals/enrich` - Run enrichment pipeline on collected signals
+- `GET /api/v1/campaigns/{id}/signals` - Retrieve signals with filters
+- `GET /api/v1/campaigns/signals/{signal_id}/enrichments` - Inspect enrichment records for a signal
+
+### Exports
+- `POST /api/v1/campaigns/{id}/exports/{platform}` - Build export payloads (meta, google, linkedin)
+
+### Observability
+- `GET /api/v1/observability/events` - View recent audit/observability events
 
 ## Database Schema
 

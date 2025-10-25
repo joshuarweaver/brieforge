@@ -8,7 +8,21 @@ from alembic import context
 
 # Import models to ensure they're registered
 from app.core.database import Base
-from app.models import User, Workspace, Campaign, Signal, Analysis, GeneratedAsset, AssetRating, SuccessPattern
+from app.models import (
+    User,
+    Workspace,
+    Campaign,
+    CampaignBlueprintArtifact,
+    Signal,
+    SignalEnrichment,
+    AuditLog,
+    Analysis,
+    GeneratedAsset,
+    AssetRating,
+    SuccessPattern,
+    APIKey,
+    StrategicBrief,
+)
 
 # Import settings
 from app.core.config import settings
