@@ -148,3 +148,97 @@ export interface AudienceInsights {
     tokens_used: number;
   };
 }
+
+// Analytics types
+export interface DashboardStats {
+  total_campaigns: number;
+  total_signals: number;
+  total_analyses: number;
+  total_briefs: number;
+  campaigns_growth: number;
+  signals_growth: number;
+  analyses_growth: number;
+  briefs_growth: number;
+}
+
+export interface CampaignTimelinePoint {
+  period: string;
+  count: number;
+  date: string;
+}
+
+export interface SignalSourceBreakdown {
+  source: string;
+  count: number;
+  percentage: number;
+}
+
+export interface DashboardAnalytics {
+  stats: DashboardStats;
+  campaigns_timeline: CampaignTimelinePoint[];
+  signal_sources: SignalSourceBreakdown[];
+}
+
+// New simplified analytics types
+export interface CampaignStatusItem {
+  status: string;
+  count: number;
+}
+
+export interface CampaignStatusResponse {
+  statuses: CampaignStatusItem[];
+}
+
+export interface IntelligenceQualityResponse {
+  avg_relevance: number;
+  high_quality_percentage: number;
+  avg_per_campaign: number;
+}
+
+export interface LLMProviderUsage {
+  provider: string;
+  tokens: number;
+  count: number;
+}
+
+export interface LLMUsageResponse {
+  providers: LLMProviderUsage[];
+  total_tokens: number;
+}
+
+export interface CompetitorItem {
+  name: string;
+  count: number;
+}
+
+export interface CompetitorsResponse {
+  competitors: CompetitorItem[];
+}
+
+export interface AudienceItem {
+  name: string;
+  count: number;
+}
+
+export interface AudiencesResponse {
+  audiences: AudienceItem[];
+}
+
+export interface ChannelItem {
+  name: string;
+  count: number;
+}
+
+export interface ChannelsResponse {
+  channels: ChannelItem[];
+}
+
+export interface AssetRatingItem {
+  platform: string;
+  avg_rating: number;
+  count: number;
+}
+
+export interface AssetRatingsResponse {
+  platforms: AssetRatingItem[];
+}

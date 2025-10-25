@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.database import Base, engine
-from app.api.v1 import auth, workspaces, campaigns, signals, analysis, strategic_brief, audience
+from app.api.v1 import auth, workspaces, campaigns, signals, analysis, strategic_brief, audience, analytics
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -36,6 +36,7 @@ app.include_router(signals.router, prefix=settings.API_V1_PREFIX, tags=["signals
 app.include_router(analysis.router, prefix=settings.API_V1_PREFIX, tags=["analysis"])
 app.include_router(strategic_brief.router, prefix=settings.API_V1_PREFIX, tags=["strategic-brief"])
 app.include_router(audience.router, prefix=settings.API_V1_PREFIX, tags=["audience"])
+app.include_router(analytics.router, prefix=settings.API_V1_PREFIX, tags=["analytics"])
 
 
 @app.get("/")
