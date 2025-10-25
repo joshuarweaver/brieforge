@@ -274,7 +274,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-[85vh] flex items-center justify-center px-6 pt-20 pb-32 overflow-hidden">
+      <section className="relative min-h-[70vh] flex items-center justify-center px-6 pt-20 pb-32 overflow-hidden">
         {/* Background with mouse interaction */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(99,102,241,0.08),transparent_50%),radial-gradient(circle_at_70%_80%,rgba(14,165,233,0.08),transparent_50%)]" />
         <div
@@ -555,30 +555,7 @@ export default function LandingPage() {
       <section className="py-32 px-6 border-t border-border">
         <div className="container mx-auto max-w-[1100px]">
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="relative order-2 md:order-1">
-              <div className="absolute -inset-4 bg-gradient-to-br from-purple-100/50 to-pink-100/50 rounded-2xl blur-2xl" />
-              <div className="relative p-8 rounded-xl border border-border bg-white shadow-xl space-y-4">
-                {[
-                  { name: 'Claude 4.5', color: 'from-indigo-500 to-purple-500', delay: 0 },
-                  { name: 'GPT-4', color: 'from-emerald-500 to-teal-500', delay: 200 },
-                  { name: 'Gemini Pro', color: 'from-blue-500 to-cyan-500', delay: 400 },
-                ].map((ai) => (
-                  <div key={ai.name} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[13px] font-semibold text-slate-700">{ai.name}</span>
-                      <span className="text-[12px] text-slate-500">Analyzing...</span>
-                    </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full bg-gradient-to-r ${ai.color} rounded-full animate-in slide-in-from-left duration-1000`}
-                        style={{ animationDelay: `${ai.delay}ms`, animationFillMode: 'backwards' }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-6 order-1 md:order-2">
+            <div className="space-y-6">
               <div className="inline-block px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-[12px] font-semibold uppercase tracking-wide">
                 AI Analysis
               </div>
@@ -628,6 +605,29 @@ export default function LandingPage() {
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="absolute -inset-4 bg-gradient-to-br from-purple-100/50 to-pink-100/50 rounded-2xl blur-2xl" />
+              <div className="relative p-8 rounded-xl border border-border bg-white shadow-xl space-y-4">
+                {[
+                  { name: 'Claude 4.5', color: 'from-indigo-500 to-purple-500', delay: 0 },
+                  { name: 'GPT-4', color: 'from-emerald-500 to-teal-500', delay: 200 },
+                  { name: 'Gemini Pro', color: 'from-blue-500 to-cyan-500', delay: 400 },
+                ].map((ai) => (
+                  <div key={ai.name} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[13px] font-semibold text-slate-700">{ai.name}</span>
+                      <span className="text-[12px] text-slate-500">Analyzing...</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full bg-gradient-to-r ${ai.color} rounded-full animate-in slide-in-from-left duration-1000`}
+                        style={{ animationDelay: `${ai.delay}ms`, animationFillMode: 'backwards' }}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -720,7 +720,7 @@ export default function LandingPage() {
       <section className="py-32 px-6 border-t border-border">
         <div className="container mx-auto max-w-[1100px]">
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="space-y-6">
+            <div className="space-y-6 order-2 md:order-1">
               <div className="inline-block px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-[12px] font-semibold uppercase tracking-wide">
                 Strategic Output
               </div>
@@ -772,7 +772,7 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-            <div className="relative">
+            <div className="relative order-1 md:order-2">
               <div className="absolute -inset-4 bg-gradient-to-br from-slate-100/50 to-gray-100/50 rounded-2xl blur-2xl" />
               <div className="relative p-8 rounded-xl border border-border bg-white shadow-xl space-y-3">
                 {[
@@ -806,30 +806,7 @@ export default function LandingPage() {
       <section className="py-32 px-6 border-t border-border">
         <div className="container mx-auto max-w-[1100px]">
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="relative order-2 md:order-1">
-              <div className="absolute -inset-4 bg-gradient-to-br from-emerald-100/50 to-teal-100/50 rounded-2xl blur-2xl" />
-              <div className="relative p-8 rounded-xl border border-border bg-white shadow-xl">
-                <div className="flex flex-wrap gap-3">
-                  {[
-                    { format: 'PDF', color: 'from-red-100 to-red-50 border-red-200 text-red-700', delay: 0 },
-                    { format: 'Markdown', color: 'from-blue-100 to-blue-50 border-blue-200 text-blue-700', delay: 100 },
-                    { format: 'JSON', color: 'from-yellow-100 to-yellow-50 border-yellow-200 text-yellow-700', delay: 200 },
-                    { format: 'CSV', color: 'from-green-100 to-green-50 border-green-200 text-green-700', delay: 300 },
-                    { format: 'DOCX', color: 'from-indigo-100 to-indigo-50 border-indigo-200 text-indigo-700', delay: 400 },
-                    { format: 'HTML', color: 'from-purple-100 to-purple-50 border-purple-200 text-purple-700', delay: 500 },
-                  ].map((item) => (
-                    <div
-                      key={item.format}
-                      className={`px-4 py-3 rounded-lg bg-gradient-to-br ${item.color} border text-[13px] font-semibold animate-in fade-in zoom-in duration-500`}
-                      style={{ animationDelay: `${item.delay}ms`, animationFillMode: 'backwards' }}
-                    >
-                      {item.format}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="space-y-6 order-1 md:order-2">
+            <div className="space-y-6">
               <div className="inline-block px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[12px] font-semibold uppercase tracking-wide">
                 Export & Integration
               </div>
@@ -881,6 +858,29 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
+            <div className="relative">
+              <div className="absolute -inset-4 bg-gradient-to-br from-emerald-100/50 to-teal-100/50 rounded-2xl blur-2xl" />
+              <div className="relative p-8 rounded-xl border border-border bg-white shadow-xl">
+                <div className="flex flex-wrap gap-3">
+                  {[
+                    { format: 'PDF', color: 'from-red-100 to-red-50 border-red-200 text-red-700', delay: 0 },
+                    { format: 'Markdown', color: 'from-blue-100 to-blue-50 border-blue-200 text-blue-700', delay: 100 },
+                    { format: 'JSON', color: 'from-yellow-100 to-yellow-50 border-yellow-200 text-yellow-700', delay: 200 },
+                    { format: 'CSV', color: 'from-green-100 to-green-50 border-green-200 text-green-700', delay: 300 },
+                    { format: 'DOCX', color: 'from-indigo-100 to-indigo-50 border-indigo-200 text-indigo-700', delay: 400 },
+                    { format: 'HTML', color: 'from-purple-100 to-purple-50 border-purple-200 text-purple-700', delay: 500 },
+                  ].map((item) => (
+                    <div
+                      key={item.format}
+                      className={`px-4 py-3 rounded-lg bg-gradient-to-br ${item.color} border text-[13px] font-semibold animate-in fade-in zoom-in duration-500`}
+                      style={{ animationDelay: `${item.delay}ms`, animationFillMode: 'backwards' }}
+                    >
+                      {item.format}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -889,7 +889,7 @@ export default function LandingPage() {
       <section className="py-32 px-6 border-t border-border">
         <div className="container mx-auto max-w-[1100px]">
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="space-y-6">
+            <div className="space-y-6 order-2 md:order-1">
               <div className="inline-block px-3 py-1 rounded-full bg-green-100 text-green-700 text-[12px] font-semibold uppercase tracking-wide">
                 Live Intelligence
               </div>
@@ -941,7 +941,7 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-            <div className="relative">
+            <div className="relative order-1 md:order-2">
               <div className="absolute -inset-4 bg-gradient-to-br from-green-100/50 to-emerald-100/50 rounded-2xl blur-2xl" />
               <div className="relative p-8 rounded-xl border border-border bg-white shadow-xl">
                 <div className="space-y-4">
