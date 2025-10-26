@@ -36,7 +36,9 @@ class SearchAPIClient:
             raise ValueError("SEARCHAPI_KEY not configured")
 
         self.last_request_time = 0
-        self.min_request_interval = 0.1  # 100ms between requests
+        min_interval_ms = max(settings.SEARCHAPI_MIN_REQUEST_INTERVAL_MS or 0, 0)
+        # Convert configured interval to seconds, defaulting to 100ms if unset
+        self.min_request_interval = (min_interval_ms / 1000.0) if min_interval_ms else 0.1
 
     def _rate_limit(self):
         """Enforce minimum interval between requests."""
@@ -49,9 +51,12 @@ class SearchAPIClient:
         self.last_request_time = time.time()
 
     @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=2, max=10),
-        retry=retry_if_exception_type((httpx.TimeoutException, httpx.ConnectError))
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(multiplier=1, min=2, max=20),
+        retry=retry_if_exception_type(
+            (httpx.TimeoutException, httpx.ConnectError, SearchAPIRateLimitError)
+        ),
+        reraise=True,
     )
     def search(self, engine: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -97,6 +102,8 @@ class SearchAPIClient:
 
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 429:
+                # Increase backoff window to ease pressure on the SearchAPI service
+                self.min_request_interval = min(self.min_request_interval * 2, 5.0)
                 raise SearchAPIRateLimitError("Rate limit exceeded")
             raise SearchAPIError(f"HTTP {e.response.status_code}: {e.response.text}")
         except httpx.RequestError as e:

@@ -3,7 +3,16 @@ import secrets
 import uuid
 from typing import Tuple
 
+import bcrypt
 from passlib.context import CryptContext
+
+# passlib 1.7.x expects bcrypt to expose __about__.__version__, which can be
+# missing on some Linux builds. Shim the attribute to keep the handler stable.
+if not hasattr(bcrypt, "__about__"):
+    class _BcryptAbout:
+        __version__ = getattr(bcrypt, "__version__", "unknown")
+
+    bcrypt.__about__ = _BcryptAbout()  # type: ignore[attr-defined]
 
 from app.core.config import settings
 

@@ -18,6 +18,14 @@ class SignalQueryBuilder:
     """
 
     DEFAULT_LIMIT = 10
+    BANNED_SUBSTRINGS = (
+        "near me",
+        "nearby",
+        "closest to me",
+        "close to me",
+        "around me",
+        "in my area",
+    )
 
     def __init__(
         self,
@@ -70,9 +78,12 @@ class SignalQueryBuilder:
                 temperature=0.4,
             )
             content = response.get("content", "") if isinstance(response, dict) else ""
-            queries = self._parse_queries(content, limit)
+            queries = self._post_process_queries(
+                self._parse_queries(content, limit),
+                limit,
+            )
             if queries:
-                return queries[:limit]
+                return queries
         except LLMError as exc:
             logger.warning(
                 "LLM query generation failed for cartridge %s: %s",
@@ -86,7 +97,7 @@ class SignalQueryBuilder:
                 exc,
             )
 
-        return fallback_list[:limit]
+        return self._post_process_queries(fallback_list, limit)
 
     def _build_prompt(
         self,
@@ -112,7 +123,9 @@ class SignalQueryBuilder:
             f"Generate up to {limit} distinct search inputs for the {platform} "
             f"platform using the data below. Each search input should be between "
             f"4 and 9 words, avoid boolean operators unless critical, and focus on "
-            f"high-signal discoveries that support the intent.\n\n"
+            f"high-signal discoveries that support the intent. Keep the phrasing "
+            f"general—avoid location-dependent cues like \"near me\", \"nearby\", "
+            f"or \"in my area\" unless an explicit market/location is provided.\n\n"
             f"Cartridge: {cartridge_name}\n"
             f"Intent: {intent}\n"
             f"Brand: {brand}\n"
@@ -159,6 +172,31 @@ class SignalQueryBuilder:
 
         return []
 
+    def _post_process_queries(
+        self,
+        queries: Iterable[str],
+        limit: int,
+    ) -> List[str]:
+        """Normalize, de-duplicate, and drop undesired query phrases."""
+        cleaned: List[str] = []
+        seen = set()
+        for raw in queries:
+            if raw is None:
+                continue
+            query = str(raw).strip()
+            if not query:
+                continue
+            lowered = query.lower()
+            if any(phrase in lowered for phrase in self.BANNED_SUBSTRINGS):
+                continue
+            if lowered in seen:
+                continue
+            cleaned.append(query)
+            seen.add(lowered)
+            if len(cleaned) >= limit:
+                break
+        return cleaned
+
 
 # Shared singleton to avoid re-initialising the LLM client per cartridge.
 _default_builder: Optional[SignalQueryBuilder] = None
@@ -170,4 +208,3 @@ def get_signal_query_builder() -> SignalQueryBuilder:
     if _default_builder is None:
         _default_builder = SignalQueryBuilder()
     return _default_builder
-

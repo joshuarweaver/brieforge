@@ -133,6 +133,25 @@ class CampaignBlueprintService:
         self.observability = observability or ObservabilityService(db)
         self.compliance = ComplianceService(db)
 
+    # Persistence helpers -------------------------------------------------
+
+    def list_blueprints(self, campaign_id: uuid.UUID) -> List[CampaignBlueprintArtifact]:
+        """Return stored blueprints for a campaign in reverse chronological order."""
+        return (
+            self.db.query(CampaignBlueprintArtifact)
+            .filter(CampaignBlueprintArtifact.campaign_id == campaign_id)
+            .order_by(CampaignBlueprintArtifact.created_at.desc())
+            .all()
+        )
+
+    def get_blueprint(self, artifact_id: uuid.UUID) -> CampaignBlueprintArtifact | None:
+        """Retrieve a single stored blueprint artifact."""
+        return (
+            self.db.query(CampaignBlueprintArtifact)
+            .filter(CampaignBlueprintArtifact.id == artifact_id)
+            .first()
+        )
+
     def generate_blueprint(
         self,
         *,

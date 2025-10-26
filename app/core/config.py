@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_REQUESTS_PER_MINUTE: Optional[int] = None
     RATE_LIMIT_WINDOW_SECONDS: Optional[int] = 60
     RATE_LIMIT_REDIS_URL: Optional[str] = None
+    SEARCHAPI_MIN_REQUEST_INTERVAL_MS: int = 500
 
     model_config = SettingsConfigDict(
         env_file=".env",
