@@ -19,6 +19,7 @@ Intelligence-driven campaign generation system powered by public signal intellig
 
 - Python 3.11+
 - PostgreSQL 15+
+- Redis (optional, required for distributed rate limiting)
 - Virtual environment (recommended)
 
 ### Installation
@@ -44,6 +45,10 @@ cp .env.example .env
 # - ANTHROPIC_API_KEY
 # - OPENAI_API_KEY
 # - SERPAPI_KEY
+# - ADMIN_PROVISION_TOKEN (required to provision API keys; sent via `X-Admin-Token`)
+# - RATE_LIMIT_REQUESTS_PER_MINUTE (global requests allowed per key)
+# - RATE_LIMIT_WINDOW_SECONDS (window size in seconds for the limiter)
+# - RATE_LIMIT_REDIS_URL (optional Redis URL to enforce rate limits across instances)
 ```
 
 4. **Set up database**:
@@ -103,6 +108,8 @@ backend/
 - `GET /api/v1/auth/api-keys` - List active API keys
 - `POST /api/v1/auth/api-keys` - Create additional API key
 - `DELETE /api/v1/auth/api-keys/{id}` - Revoke API key
+
+Provisioning endpoints (`POST /api/v1/auth/register`, `POST /api/v1/auth/api-keys`) require the `X-Admin-Token` header when `ADMIN_PROVISION_TOKEN` is set. All authenticated requests enforce a global rate limit controlled by `RATE_LIMIT_REQUESTS_PER_MINUTE` over `RATE_LIMIT_WINDOW_SECONDS`; exceeding the limit returns HTTP 429 with a `Retry-After` hint. Set `RATE_LIMIT_REDIS_URL` to enable distributed enforcement of those limits; otherwise they apply per process.
 
 ### Workspaces
 - `GET /api/v1/workspaces` - List user's workspaces

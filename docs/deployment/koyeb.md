@@ -17,6 +17,8 @@ koyeb secret create fieldcraft-secret-key --value 'openssl rand -hex 32'
 koyeb secret create fieldcraft-anthropic-api-key --value 'sk-ant-...'
 koyeb secret create fieldcraft-openai-api-key --value 'sk-...'
 koyeb secret create fieldcraft-searchapi-key --value 'your-searchapi-key'  # optional if not using SearchAPI
+koyeb secret create fieldcraft-admin-token --value 'super-secret-admin-token'
+koyeb secret create fieldcraft-redis-url --value 'redis://default:password@redis-host:6379/0'
 ```
 
 ## 2. Configure the deployment manifest
@@ -28,6 +30,8 @@ The root-level [`koyeb.yaml`](../../koyeb.yaml) file defines a single web servic
 - Ships with a `/health` HTTP check.
 - Maps secrets to the expected environment variables.
 - Sets default production values for `ENVIRONMENT` and `DEBUG`.
+- Applies global rate limits with `RATE_LIMIT_REQUESTS_PER_MINUTE` (default `120`) across a `RATE_LIMIT_WINDOW_SECONDS` (default `60`) window.
+- Uses Redis (via `RATE_LIMIT_REDIS_URL`) for distributed rate limiting; if omitted, limits degrade to in-process enforcement.
 
 Update the `source.git.repo` field to point to the repository URL Koyeb should deploy from (HTTPS or SSH).
 
@@ -49,6 +53,7 @@ Subsequent deployments only require rerunning `koyeb service deploy` with the ma
 1. Wait for the build and deployment to finish in the Koyeb dashboard or via `koyeb service describe fieldcraft-api`.
 2. Once live, verify the health endpoint: `curl https://<your-app>.koyeb.app/health`.
 3. Trigger a smoke request (for example `GET /`) to ensure the service responds with HTTP 200.
+4. When provisioning API keys via `POST /api/v1/auth/register` or `POST /api/v1/auth/api-keys`, include the `X-Admin-Token` header matching `ADMIN_PROVISION_TOKEN`; otherwise the service returns HTTP 401.
 
 ## Notes
 - Alembic migrations are not automated. If you add migrations, run them via a one-off job or managed workflow before switching traffic.

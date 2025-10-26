@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     API_KEY_PREFIX: str = "fc"
     API_KEY_HEADER_NAME: str = "X-API-Key"
+    ADMIN_PROVISION_TOKEN: Optional[str] = None
 
     # LLM APIs
     ANTHROPIC_API_KEY: str
@@ -31,6 +32,9 @@ class Settings(BaseSettings):
     BLUEPRINT_USE_LLM: bool = True
     BLUEPRINT_LLM_PROVIDER: str = "claude"
     BLUEPRINT_LLM_MAX_TOKENS: int = 2800
+    RATE_LIMIT_REQUESTS_PER_MINUTE: int = 120
+    RATE_LIMIT_WINDOW_SECONDS: int = 60
+    RATE_LIMIT_REDIS_URL: Optional[str] = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

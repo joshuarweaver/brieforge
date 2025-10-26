@@ -28,6 +28,14 @@ services:
         secret: fieldcraft-openai-api-key
       - key: SEARCHAPI_KEY
         secret: fieldcraft-searchapi-key
+      - key: ADMIN_PROVISION_TOKEN
+        secret: fieldcraft-admin-token
+      - key: RATE_LIMIT_REQUESTS_PER_MINUTE
+        value: "120"
+      - key: RATE_LIMIT_WINDOW_SECONDS
+        value: "60"
+      - key: RATE_LIMIT_REDIS_URL
+        secret: fieldcraft-redis-url
     checks:
       - name: http-health
         type: http

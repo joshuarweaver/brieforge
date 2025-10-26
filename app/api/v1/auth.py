@@ -1,13 +1,15 @@
 """Authentication endpoints using API keys."""
+import secrets
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import generate_api_key
+from app.core.config import settings
 from app.api.deps import get_current_user
 from app.models import User, Workspace, APIKey
 from app.schemas import (
@@ -23,9 +25,28 @@ from app.schemas import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+def _require_admin_token(admin_token: Optional[str]) -> None:
+    """Validate provided admin token when provisioning keys."""
+    expected = settings.ADMIN_PROVISION_TOKEN
+    if not expected:
+        return
+
+    if not admin_token or not secrets.compare_digest(admin_token, expected):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing admin provisioning token",
+        )
+
+
 @router.post("/register", response_model=RegistrationResponse, status_code=status.HTTP_201_CREATED)
-def register(user_data: UserCreate, db: Session = Depends(get_db)):
+def register(
+    user_data: UserCreate,
+    db: Session = Depends(get_db),
+    admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token")
+):
     """Register a new user and issue their first API key."""
+    _require_admin_token(admin_token)
+
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
         raise HTTPException(
@@ -97,8 +118,11 @@ def create_api_key(
     payload: APIKeyCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
+    admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token")
 ):
     """Create an additional API key for the authenticated user."""
+    _require_admin_token(admin_token)
+
     key_name = payload.name or f"Key created at {datetime.utcnow().isoformat(timespec='seconds')}Z"
     key_id, plain_api_key, hashed_secret = generate_api_key()
     api_key_record = APIKey(

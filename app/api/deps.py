@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.config import settings
 from app.core.security import split_api_key, verify_secret
+from app.core.rate_limiter import rate_limiter, RateLimitExceeded
 from app.models import User, APIKey
 
 
@@ -50,6 +51,19 @@ def get_current_user(
         )
 
     api_key.last_used_at = datetime.utcnow()
+
+    limit = settings.RATE_LIMIT_REQUESTS_PER_MINUTE
+    window = settings.RATE_LIMIT_WINDOW_SECONDS
+
+    if limit > 0 and window > 0:
+        try:
+            rate_limiter.check(str(api_key.id), limit, window)
+        except RateLimitExceeded as exc:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Rate limit exceeded",
+                headers={"Retry-After": f"{int(exc.retry_after) or 1}"}
+            ) from exc
 
     return user
 
