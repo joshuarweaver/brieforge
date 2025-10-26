@@ -183,6 +183,10 @@ When creating a campaign, provide a brief with:
 - `pinterest`
 - `google_ads` (always included)
 
+## Deployment
+
+- See [`docs/deployment/koyeb.md`](docs/deployment/koyeb.md) for end-to-end instructions to deploy the API on Koyeb using the provided Dockerfile and manifest.
+
 ## Development
 
 ### Running tests
