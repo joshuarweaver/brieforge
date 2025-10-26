@@ -52,8 +52,8 @@ def get_current_user(
 
     api_key.last_used_at = datetime.utcnow()
 
-    limit = settings.RATE_LIMIT_REQUESTS_PER_MINUTE
-    window = settings.RATE_LIMIT_WINDOW_SECONDS
+    limit = settings.RATE_LIMIT_REQUESTS_PER_MINUTE or 0
+    window = settings.RATE_LIMIT_WINDOW_SECONDS or 60
 
     if limit > 0 and window > 0:
         try:

@@ -32,8 +32,8 @@ class Settings(BaseSettings):
     BLUEPRINT_USE_LLM: bool = True
     BLUEPRINT_LLM_PROVIDER: str = "claude"
     BLUEPRINT_LLM_MAX_TOKENS: int = 2800
-    RATE_LIMIT_REQUESTS_PER_MINUTE: int = 120
-    RATE_LIMIT_WINDOW_SECONDS: int = 60
+    RATE_LIMIT_REQUESTS_PER_MINUTE: Optional[int] = None
+    RATE_LIMIT_WINDOW_SECONDS: Optional[int] = 60
     RATE_LIMIT_REDIS_URL: Optional[str] = None
 
     model_config = SettingsConfigDict(
