@@ -59,7 +59,13 @@
               "type": "noauth"
             },
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "X-Admin-Token",
+                "value": "{{admin_token}}",
+                "type": "text"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"email\": \"{{email}}\",\n    \"workspace_name\": \"My Workspace\"\n}",
@@ -148,7 +154,13 @@
           ],
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "X-Admin-Token",
+                "value": "{{admin_token}}",
+                "type": "text"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"name\": \"Automation Runner\"\n}",
@@ -1530,6 +1542,12 @@
       "value": "",
       "type": "string",
       "description": "UUID of last generated campaign blueprint"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string",
+      "description": "Admin provisioning token required for registration and API key creation"
     }
   ]
 }
