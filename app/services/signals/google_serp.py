@@ -26,7 +26,20 @@ class GoogleSERPCartridge(SignalCartridge):
         return "google"
 
     def generate_queries(self, brief: Dict[str, Any]) -> List[str]:
-        """Generate search queries from campaign brief."""
+        """Generate search queries from campaign brief using AI."""
+        fallback = self._default_queries(brief)
+        return self.ai_generate_queries(
+            brief=brief,
+            intent=(
+                "Surface high-value competitor, audience, and trend insights "
+                "via Google search results."
+            ),
+            limit=10,
+            fallback=fallback,
+        )
+
+    def _default_queries(self, brief: Dict[str, Any]) -> List[str]:
+        """Static query strategy retained as a fallback."""
         queries = []
 
         goal = brief.get("goal", "")

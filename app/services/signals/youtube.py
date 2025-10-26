@@ -27,7 +27,20 @@ class YouTubeCartridge(SignalCartridge):
         return "youtube"
 
     def generate_queries(self, brief: Dict[str, Any]) -> List[str]:
-        """Generate search queries for YouTube."""
+        """Generate search queries for YouTube using AI."""
+        fallback = self._default_queries(brief)
+        return self.ai_generate_queries(
+            brief=brief,
+            intent=(
+                "Identify influential videos, creators, and customer proof on "
+                "YouTube relevant to the campaign."
+            ),
+            limit=10,
+            fallback=fallback,
+        )
+
+    def _default_queries(self, brief: Dict[str, Any]) -> List[str]:
+        """Static query strategy retained as fallback."""
         queries = []
 
         offer = brief.get("offer", "")

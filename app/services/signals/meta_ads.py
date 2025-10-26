@@ -26,7 +26,20 @@ class MetaAdsCartridge(SignalCartridge):
         return "meta"
 
     def generate_queries(self, brief: Dict[str, Any]) -> List[str]:
-        """Generate search queries for Meta Ads Library."""
+        """Generate search queries for Meta Ads Library using AI."""
+        fallback = self._default_queries(brief)
+        return self.ai_generate_queries(
+            brief=brief,
+            intent=(
+                "Find compelling creative, messaging themes, and competitive "
+                "angles in the Meta Ads Library."
+            ),
+            limit=10,
+            fallback=fallback,
+        )
+
+    def _default_queries(self, brief: Dict[str, Any]) -> List[str]:
+        """Static query strategy retained as fallback."""
         queries = []
 
         offer = brief.get("offer", "")

@@ -26,7 +26,20 @@ class LinkedInAdsCartridge(SignalCartridge):
         return "linkedin"
 
     def generate_queries(self, brief: Dict[str, Any]) -> List[str]:
-        """Generate search queries for LinkedIn Ads Library."""
+        """Generate search queries for LinkedIn Ads Library using AI."""
+        fallback = self._default_queries(brief)
+        return self.ai_generate_queries(
+            brief=brief,
+            intent=(
+                "Reveal B2B messaging, offers, and competitor plays inside the "
+                "LinkedIn Ads Library."
+            ),
+            limit=10,
+            fallback=fallback,
+        )
+
+    def _default_queries(self, brief: Dict[str, Any]) -> List[str]:
+        """Static query strategy retained as fallback."""
         queries = []
 
         offer = brief.get("offer", "")

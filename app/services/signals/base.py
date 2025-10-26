@@ -4,6 +4,10 @@ from typing import List, Dict, Any, Optional, Type
 from dataclasses import dataclass
 from datetime import datetime
 
+from app.services.signals.query_builder import (
+    SignalQueryBuilder,
+    get_signal_query_builder,
+)
 
 @dataclass
 class SignalEvidence:
@@ -88,6 +92,9 @@ class SignalCartridge(ABC):
     3. Extracting evidence from raw results
     4. Computing relevance scores
     """
+
+    def __init__(self):
+        self.query_builder: SignalQueryBuilder = get_signal_query_builder()
 
     @property
     @abstractmethod
@@ -223,6 +230,32 @@ class SignalCartridge(ABC):
                 score += 0.10
 
         return min(score, 1.0)
+
+    def ai_generate_queries(
+        self,
+        *,
+        brief: Dict[str, Any],
+        intent: str,
+        limit: int = 10,
+        fallback: Optional[List[str]] = None,
+    ) -> List[str]:
+        """
+        Helper to request AI-generated queries with a fallback list.
+
+        Args:
+            brief: Campaign brief dictionary
+            intent: Description of what the cartridge is trying to uncover
+            limit: Maximum number of queries to return
+            fallback: Fallback list when generation fails
+        """
+        return self.query_builder.generate(
+            brief=brief,
+            cartridge_name=self.name,
+            platform=self.platform,
+            intent=intent,
+            limit=limit,
+            fallback=fallback or [],
+        )
 
 
 class CartridgeRegistry:

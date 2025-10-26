@@ -30,24 +30,47 @@ def upgrade() -> None:
         "users",
         sa.Column("phone", sa.String(), nullable=False, server_default="0000000000"),
     )
-    op.add_column(
-        "users",
-        sa.Column(
-            "hashed_password",
-            sa.String(),
-            nullable=False,
-            server_default=DEFAULT_HASHED_PASSWORD,
+    bind = op.get_bind()
+    bind.execute(
+        sa.text(
+            "UPDATE users SET hashed_password = :default WHERE hashed_password IS NULL"
         ),
+        {"default": DEFAULT_HASHED_PASSWORD},
     )
 
-    op.alter_column("users", "first_name", server_default=None)
-    op.alter_column("users", "last_name", server_default=None)
-    op.alter_column("users", "phone", server_default=None)
-    op.alter_column("users", "hashed_password", server_default=None)
+    op.alter_column(
+        "users",
+        "first_name",
+        server_default=None,
+        existing_type=sa.String(),
+    )
+    op.alter_column(
+        "users",
+        "last_name",
+        server_default=None,
+        existing_type=sa.String(),
+    )
+    op.alter_column(
+        "users",
+        "phone",
+        server_default=None,
+        existing_type=sa.String(),
+    )
+    op.alter_column(
+        "users",
+        "hashed_password",
+        existing_type=sa.String(),
+        nullable=False,
+    )
 
 
 def downgrade() -> None:
-    op.drop_column("users", "hashed_password")
     op.drop_column("users", "phone")
     op.drop_column("users", "last_name")
     op.drop_column("users", "first_name")
+    op.alter_column(
+        "users",
+        "hashed_password",
+        existing_type=sa.String(),
+        nullable=True,
+    )

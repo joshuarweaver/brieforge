@@ -29,7 +29,20 @@ class PinterestCartridge(SignalCartridge):
         return "pinterest"
 
     def generate_queries(self, brief: Dict[str, Any]) -> List[str]:
-        """Generate search queries for Pinterest."""
+        """Generate search queries for Pinterest using AI."""
+        fallback = self._default_queries(brief)
+        return self.ai_generate_queries(
+            brief=brief,
+            intent=(
+                "Spot emerging visual trends, aesthetics, and shopping cues on "
+                "Pinterest."
+            ),
+            limit=10,
+            fallback=fallback,
+        )
+
+    def _default_queries(self, brief: Dict[str, Any]) -> List[str]:
+        """Static query strategy retained as fallback."""
         queries = []
 
         offer = brief.get("offer", "")
