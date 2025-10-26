@@ -37,11 +37,15 @@ class WorkspaceResponse(WorkspaceBase):
 class UserBase(BaseModel):
     """Base user schema."""
     email: EmailStr
+    first_name: str
+    last_name: str
+    phone: str
 
 
 class UserCreate(UserBase):
     """User creation schema."""
     workspace_name: Optional[str] = None
+    password: str
 
 
 class UserResponse(UserBase):

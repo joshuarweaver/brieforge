@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "fieldcraft-api-v1",
     "name": "Fieldcraft API - Complete Collection",
-    "description": "Complete API collection for Fieldcraft - Intelligence-driven campaign generation system\n\n**Features:**\n- API key authentication with workspace scoping\n- Multi-tenant workspaces with UUID support\n- Campaign management\n- Signal collection from 7 platforms (Google, YouTube, Meta, LinkedIn, TikTok, Reddit, Pinterest)\n- AI-powered signal analysis with Claude/GPT\n- Strategic Brief Generation (NEW) - 2-page comprehensive marketing strategy documents\n- Audience Insights (NEW) - Deep audience profiling and intelligence\n\n**Setup:**\n1. Import this collection\n2. Create environment with variables: `base_url`, `email`\n3. Run \"Register User\" to bootstrap an account and capture the API key\n4. The issued API key is saved to collection variables for subsequent requests\n\n**Recommended Workflow:**\n1. Register account\n2. Review generated API key(s)\n3. Create Campaign\n4. Collect Signals\n5. Run Signal Analysis\n6. Generate Strategic Brief\n7. Review and export deliverables",
+    "description": "Complete API collection for Fieldcraft - Intelligence-driven campaign generation system\n\n**Features:**\n- API key authentication with workspace scoping\n- Multi-tenant workspaces with UUID support\n- Campaign management\n- Signal collection from 7 platforms (Google, YouTube, Meta, LinkedIn, TikTok, Reddit, Pinterest)\n- AI-powered signal analysis with Claude/GPT\n- Strategic Brief Generation (NEW) - 2-page comprehensive marketing strategy documents\n- Audience Insights (NEW) - Deep audience profiling and intelligence\n\n**Setup:**\n1. Import this collection\n2. Create environment with variables: `base_url`, `email`, `admin_token`, `first_name`, `last_name`, `phone`, `password`\n3. Run \"Register User\" to bootstrap an account and capture the API key (the admin token is sent automatically via `X-Admin-Token`)\n4. The issued API key is saved to collection variables for subsequent requests\n\n**Recommended Workflow:**\n1. Register account\n2. Review generated API key(s)\n3. Create Campaign\n4. Collect Signals\n5. Run Signal Analysis\n6. Generate Strategic Brief\n7. Review and export deliverables",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -68,7 +68,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"{{email}}\",\n    \"workspace_name\": \"My Workspace\"\n}",
+              "raw": "{\n    \"email\": \"{{email}}\",\n    \"first_name\": \"{{first_name}}\",\n    \"last_name\": \"{{last_name}}\",\n    \"phone\": \"{{phone}}\",\n    \"password\": \"{{password}}\",\n    \"workspace_name\": \"My Workspace\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1542,6 +1542,30 @@
       "value": "",
       "type": "string",
       "description": "UUID of last generated campaign blueprint"
+    },
+    {
+      "key": "first_name",
+      "value": "Field",
+      "type": "string",
+      "description": "First name used during registration"
+    },
+    {
+      "key": "last_name",
+      "value": "Craft",
+      "type": "string",
+      "description": "Last name used during registration"
+    },
+    {
+      "key": "phone",
+      "value": "+1-555-0100",
+      "type": "string",
+      "description": "Phone number for registration"
+    },
+    {
+      "key": "password",
+      "value": "ChangeMe123!",
+      "type": "string",
+      "description": "Password used during registration"
     },
     {
       "key": "admin_token",

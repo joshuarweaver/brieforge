@@ -32,7 +32,10 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=True)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
+    phone = Column(String, nullable=False)
+    hashed_password = Column(String, nullable=False)
     workspace_id = Column(UUID(as_uuid=True), ForeignKey("workspaces.id"), nullable=True)
     role = Column(String, default="user")  # user, admin
     created_at = Column(DateTime, default=datetime.utcnow)

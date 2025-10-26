@@ -64,3 +64,13 @@ def split_api_key(api_key: str) -> Tuple[uuid.UUID, str]:
         raise ValueError("Missing API key secret")
 
     return key_id, secret
+
+
+def hash_password(password: str) -> str:
+    """Hash a user password."""
+    return hash_secret(password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against its hashed value."""
+    return verify_secret(plain_password, hashed_password)

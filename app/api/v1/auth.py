@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import generate_api_key
+from app.core.security import generate_api_key, hash_password
 from app.core.config import settings
 from app.api.deps import get_current_user
 from app.models import User, Workspace, APIKey
@@ -56,7 +56,10 @@ def register(
 
     new_user = User(
         email=user_data.email,
-        hashed_password=None,
+        first_name=user_data.first_name,
+        last_name=user_data.last_name,
+        phone=user_data.phone,
+        hashed_password=hash_password(user_data.password),
         role="admin",
     )
     db.add(new_user)

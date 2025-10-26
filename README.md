@@ -111,6 +111,8 @@ backend/
 
 Provisioning endpoints (`POST /api/v1/auth/register`, `POST /api/v1/auth/api-keys`) require the `X-Admin-Token` header when `ADMIN_PROVISION_TOKEN` is set. All authenticated requests enforce a global rate limit controlled by `RATE_LIMIT_REQUESTS_PER_MINUTE` over `RATE_LIMIT_WINDOW_SECONDS`; exceeding the limit returns HTTP 429 with a `Retry-After` hint. Set `RATE_LIMIT_REDIS_URL` to enable distributed enforcement of those limits; otherwise they apply per process.
 
+Registration payloads must include `email`, `first_name`, `last_name`, `phone`, `password`, and optionally `workspace_name`. Passwords are stored hashed.
+
 ### Workspaces
 - `GET /api/v1/workspaces` - List user's workspaces
 - `POST /api/v1/workspaces` - Create workspace
